@@ -1,0 +1,29 @@
+# --- .NET backend ---
+backend/**/bin/
+backend/**/obj/
+backend/**/[Tt]est[Rr]esult*/
+*.trx
+*.user
+*.suo
+
+# --- Node / Next.js frontend ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/coverage/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/.env*
+!frontend/.env.local.example
+frontend/npm-debug.log*
+
+# --- Editors / IDE / OS ---
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Local tooling (not part of the submission) ---
+.claude/

@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+out/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+.idea/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+
+# NOTE on appsettings.Development.json:
+# It is intentionally NOT gitignored. It only contains a throwaway local
+# PostgreSQL password ("1234") for a database that only exists on this
+# machine, and a dev-only JWT signing key — neither is a real secret worth
+# protecting. Keeping it committed means the project runs out-of-the-box
+# for anyone who clones it and has PostgreSQL running locally.
+# appsettings.json (the file that matters for real deployments) only holds
+# placeholder values; real values for a real environment should come from
+# environment variables or a secret store, never from a committed file.
