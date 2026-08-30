@@ -49,7 +49,7 @@ export default function TeacherAssignmentsPage() {
   }
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(loadData);
   }, []);
 
   async function handleFormSuccess() {

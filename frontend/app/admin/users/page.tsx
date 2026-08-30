@@ -41,7 +41,7 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(loadData);
   }, []);
 
   function openCreateModal() {

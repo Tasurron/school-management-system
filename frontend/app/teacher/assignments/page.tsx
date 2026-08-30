@@ -31,7 +31,7 @@ export default function TeacherAssignmentsPage() {
   }
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(loadData);
   }, []);
 
   async function handleToggleStatus(assignment: Assignment) {

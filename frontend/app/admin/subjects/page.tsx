@@ -32,7 +32,7 @@ export default function SubjectsPage() {
   }
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(loadData);
   }, []);
 
   function openCreateModal() {

@@ -22,25 +22,24 @@ export default function StudentAssignmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadData() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [assignmentData, submissions] = await Promise.all([
-        assignmentService.getAssignmentById(assignmentId),
-        submissionService.getSubmissions(),
-      ]);
-      setAssignment(assignmentData);
-      setSubmission(submissions.find((s) => s.assignmentId === assignmentId) ?? null);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadData();
+    async function loadData() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [assignmentData, submissions] = await Promise.all([
+          assignmentService.getAssignmentById(assignmentId),
+          submissionService.getSubmissions(),
+        ]);
+        setAssignment(assignmentData);
+        setSubmission(submissions.find((s) => s.assignmentId === assignmentId) ?? null);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    queueMicrotask(loadData);
   }, [assignmentId]);
 
   if (isLoading) return <Spinner label="Loading assignment..." />;

@@ -33,7 +33,7 @@ export default function StudentSubmissionsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">My Submissions</h1>
-        <p className="mt-1 text-sm text-slate-500">Everything you've submitted so far.</p>
+        <p className="mt-1 text-sm text-slate-500">Everything you&apos;ve submitted so far.</p>
       </div>
 
       {isLoading && <Spinner label="Loading submissions..." />}
