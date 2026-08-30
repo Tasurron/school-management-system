@@ -9,6 +9,9 @@ namespace SchoolMS.Business.Services;
 
 public class ClassService : IClassService
 {
+    private static readonly int[] AllowedGrades = { 8, 9, 10, 11, 12 };
+    private static readonly string[] AllowedSections = { "A", "B" };
+
     private readonly IClassRepository _classRepository;
     private readonly IUserRepository _userRepository;
     private readonly IAssignmentRepository _assignmentRepository;
@@ -25,7 +28,7 @@ public class ClassService : IClassService
 
     public async Task<List<ClassResponseDto>> GetAllAsync()
     {
-        var classes = await _classRepository.Query().OrderBy(c => c.Id).ToListAsync();
+        var classes = await _classRepository.Query().OrderBy(c => c.Grade).ThenBy(c => c.Section).ToListAsync();
         return classes.Select(MapToDto).ToList();
     }
 
@@ -42,13 +45,21 @@ public class ClassService : IClassService
 
     public async Task<ClassResponseDto> CreateAsync(ClassRequest request)
     {
-        var duplicate = await _classRepository.Query().AnyAsync(c => c.Name == request.Name);
+        var section = ValidateAndNormalize(request);
+
+        var duplicate = await _classRepository.Query()
+            .AnyAsync(c => c.Grade == request.Grade && c.Section == section);
         if (duplicate)
         {
-            throw new ConflictException($"A class named '{request.Name}' already exists.");
+            throw new ConflictException($"Class {request.Grade} - Section {section} already exists.");
         }
 
-        var classEntity = new Class { Name = request.Name };
+        var classEntity = new Class
+        {
+            Grade = request.Grade,
+            Section = section,
+            Name = BuildName(request.Grade, section)
+        };
         await _classRepository.AddAsync(classEntity);
         await _classRepository.SaveChangesAsync();
 
@@ -63,13 +74,18 @@ public class ClassService : IClassService
             throw new NotFoundException($"Class with id {id} was not found.");
         }
 
-        var duplicate = await _classRepository.Query().AnyAsync(c => c.Name == request.Name && c.Id != id);
+        var section = ValidateAndNormalize(request);
+
+        var duplicate = await _classRepository.Query()
+            .AnyAsync(c => c.Grade == request.Grade && c.Section == section && c.Id != id);
         if (duplicate)
         {
-            throw new ConflictException($"A class named '{request.Name}' already exists.");
+            throw new ConflictException($"Class {request.Grade} - Section {section} already exists.");
         }
 
-        classEntity.Name = request.Name;
+        classEntity.Grade = request.Grade;
+        classEntity.Section = section;
+        classEntity.Name = BuildName(request.Grade, section);
         _classRepository.Update(classEntity);
         await _classRepository.SaveChangesAsync();
 
@@ -95,9 +111,29 @@ public class ClassService : IClassService
         await _classRepository.SaveChangesAsync();
     }
 
+    private static string ValidateAndNormalize(ClassRequest request)
+    {
+        if (!AllowedGrades.Contains(request.Grade))
+        {
+            throw new BusinessRuleException("Grade must be one of: 8, 9, 10, 11, 12.");
+        }
+
+        var section = request.Section.Trim().ToUpperInvariant();
+        if (!AllowedSections.Contains(section))
+        {
+            throw new BusinessRuleException("Section must be one of: A, B.");
+        }
+
+        return section;
+    }
+
+    private static string BuildName(int grade, string section) => $"Class {grade} - Section {section}";
+
     private static ClassResponseDto MapToDto(Class classEntity) => new()
     {
         Id = classEntity.Id,
+        Grade = classEntity.Grade,
+        Section = classEntity.Section,
         Name = classEntity.Name
     };
 }

@@ -31,7 +31,7 @@ const NAV_LINKS: Record<Role, NavLink[]> = {
   ],
   Teacher: [
     { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/teacher/assignments", label: "My Assignments", icon: ClipboardList },
+    { href: "/teacher/assignments", label: "Assignment", icon: ClipboardList },
   ],
   Student: [
     { href: "/student", label: "Dashboard", icon: LayoutDashboard },

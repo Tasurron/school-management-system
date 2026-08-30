@@ -35,9 +35,16 @@ public class AssignmentsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:int}/attachment")]
+    public async Task<IActionResult> GetAttachment(int id)
+    {
+        var file = await _assignmentService.GetAttachmentAsync(id, User.GetUserId(), User.GetRole());
+        return File(file.Content, file.ContentType, file.FileName);
+    }
+
     [HttpPost]
     [Authorize(Roles = "Teacher")]
-    public async Task<IActionResult> Create([FromBody] CreateAssignmentRequest request)
+    public async Task<IActionResult> Create([FromForm] CreateAssignmentRequest request)
     {
         var result = await _assignmentService.CreateAsync(request, User.GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -45,7 +52,7 @@ public class AssignmentsController : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Teacher")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateAssignmentRequest request)
+    public async Task<IActionResult> Update(int id, [FromForm] UpdateAssignmentRequest request)
     {
         var result = await _assignmentService.UpdateAsync(id, request, User.GetUserId());
         return Ok(result);

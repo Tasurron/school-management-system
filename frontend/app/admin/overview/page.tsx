@@ -64,7 +64,7 @@ export default function AdminOverviewPage() {
                       <Th>Teacher</Th>
                       <Th>Status</Th>
                       <Th>Deadline</Th>
-                      <Th>Max Marks</Th>
+                      <Th>Marks</Th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">

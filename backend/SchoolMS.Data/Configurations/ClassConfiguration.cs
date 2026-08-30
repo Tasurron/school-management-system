@@ -12,11 +12,15 @@ public class ClassConfiguration : IEntityTypeConfiguration<Class>
 
         builder.HasKey(c => c.Id);
 
+        builder.Property(c => c.Section)
+            .IsRequired()
+            .HasMaxLength(1);
+
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.HasIndex(c => c.Name)
+        builder.HasIndex(c => new { c.Grade, c.Section })
             .IsUnique();
     }
 }

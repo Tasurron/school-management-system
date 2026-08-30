@@ -8,6 +8,8 @@ export interface TeacherAssignment {
   subjectName: string;
   classId: number;
   className: string;
+  classGrade: number;
+  classSection: string;
   createdAt: string;
 }
 

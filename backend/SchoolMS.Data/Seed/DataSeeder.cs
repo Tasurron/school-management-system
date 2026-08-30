@@ -18,19 +18,26 @@ public static class DataSeeder
 
         var now = DateTime.UtcNow;
 
-        // 1. Classes
-        var class9A = new Class { Name = "Class 9-A" };
-        var class10A = new Class { Name = "Class 10-A" };
-        var class10B = new Class { Name = "Class 10-B" };
+        // 1. Classes - Grade (8-12) + Section (A-D) is the fixed vocabulary; Name is derived.
+        var class9A = new Class { Grade = 9, Section = "A", Name = "Class 9 - Section A" };
+        var class10A = new Class { Grade = 10, Section = "A", Name = "Class 10 - Section A" };
+        var class10B = new Class { Grade = 10, Section = "B", Name = "Class 10 - Section B" };
         db.Classes.AddRange(class9A, class10A, class10B);
         await db.SaveChangesAsync();
 
-        // 2. Subjects
+        // 2. Subjects - a shared list covering Classes 8-12 (Bangladesh National Curriculum-style).
         var math = new Subject { Name = "Mathematics" };
         var physics = new Subject { Name = "Physics" };
         var english = new Subject { Name = "English" };
         var cs = new Subject { Name = "Computer Science" };
-        db.Subjects.AddRange(math, physics, english, cs);
+        var bangla = new Subject { Name = "Bangla" };
+        var chemistry = new Subject { Name = "Chemistry" };
+        var biology = new Subject { Name = "Biology" };
+        var ict = new Subject { Name = "ICT" };
+        var higherMath = new Subject { Name = "Higher Mathematics" };
+        var bgs = new Subject { Name = "Bangladesh & Global Studies" };
+        var religion = new Subject { Name = "Religion & Moral Education" };
+        db.Subjects.AddRange(math, physics, english, cs, bangla, chemistry, biology, ict, higherMath, bgs, religion);
         await db.SaveChangesAsync();
 
         // 3. Users

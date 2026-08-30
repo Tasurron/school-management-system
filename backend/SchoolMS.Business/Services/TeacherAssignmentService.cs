@@ -127,6 +127,8 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         SubjectName = entity.Subject.Name,
         ClassId = entity.ClassId,
         ClassName = entity.Class.Name,
+        ClassGrade = entity.Class.Grade,
+        ClassSection = entity.Class.Section,
         CreatedAt = entity.CreatedAt
     };
 }

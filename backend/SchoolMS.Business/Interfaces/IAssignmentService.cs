@@ -17,4 +17,14 @@ public interface IAssignmentService
     Task<AssignmentResponseDto> CreateAsync(CreateAssignmentRequest request, int currentTeacherId);
     Task<AssignmentResponseDto> UpdateAsync(int id, UpdateAssignmentRequest request, int currentTeacherId);
     Task DeleteAsync(int id, int currentTeacherId);
+
+    // Same visibility rules as GetByIdAsync. Throws NotFoundException if there's no attachment.
+    Task<AttachmentFile> GetAttachmentAsync(int id, int currentUserId, string currentUserRole);
+}
+
+public class AttachmentFile
+{
+    public byte[] Content { get; set; } = Array.Empty<byte>();
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
 }

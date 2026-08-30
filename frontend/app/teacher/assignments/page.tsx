@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
+import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
@@ -43,7 +44,8 @@ export default function TeacherAssignmentsPage() {
         description: assignment.description,
         deadline: assignment.deadline,
         maxMarks: assignment.maxMarks,
-        classId: assignment.classId,
+        classGrade: assignment.classGrade,
+        classSection: assignment.classSection,
         subjectId: assignment.subjectId,
         status: assignment.status === "Published" ? "Draft" : "Published",
       });
@@ -70,7 +72,7 @@ export default function TeacherAssignmentsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Assignments</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Assignment</h1>
           <p className="mt-1 text-sm text-slate-500">
             Create, publish, and grade assignments for your classes.
           </p>
@@ -107,7 +109,14 @@ export default function TeacherAssignmentsPage() {
             <tbody className="divide-y divide-slate-100">
               {assignments.map((a) => (
                 <tr key={a.id} className="transition-colors duration-200 hover:bg-slate-50">
-                  <Td>{a.title}</Td>
+                  <Td>
+                    <span className="inline-flex items-center gap-1.5">
+                      {a.title}
+                      {a.attachmentFileName && (
+                        <Paperclip className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-label="Has attachment" />
+                      )}
+                    </span>
+                  </Td>
                   <Td>{a.className}</Td>
                   <Td>{a.subjectName}</Td>
                   <Td>

@@ -7,39 +7,37 @@ import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
-import * as teacherAssignmentService from "@/services/teacherAssignmentService";
-import { useAuth } from "@/hooks/useAuth";
+import * as subjectService from "@/services/subjectService";
 import { Assignment } from "@/types/assignment";
-import { TeacherAssignment } from "@/types/teacherAssignment";
+import { Subject } from "@/types/subject";
 
 export default function EditAssignmentPage() {
-  const { user } = useAuth();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const assignmentId = Number(params.id);
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
-  const [teacherAssignments, setTeacherAssignments] = useState<TeacherAssignment[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [assignmentData, allTeacherAssignments] = await Promise.all([
+        const [assignmentData, subjectsData] = await Promise.all([
           assignmentService.getAssignmentById(assignmentId),
-          teacherAssignmentService.getTeacherAssignments(),
+          subjectService.getSubjects(),
         ]);
         setAssignment(assignmentData);
-        setTeacherAssignments(allTeacherAssignments.filter((ta) => ta.teacherId === user?.id));
+        setSubjects(subjectsData);
       } catch (err) {
         setError(getErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
     }
-    if (user) loadData();
-  }, [assignmentId, user]);
+    queueMicrotask(loadData);
+  }, [assignmentId]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +52,7 @@ export default function EditAssignmentPage() {
       {!isLoading && !error && assignment && (
         <div className="max-w-xl rounded border border-slate-100 bg-white p-6 shadow-card">
           <AssignmentForm
-            teacherAssignments={teacherAssignments}
+            subjects={subjects}
             assignment={assignment}
             onSuccess={() => router.push("/teacher/assignments")}
             onCancel={() => router.push("/teacher/assignments")}

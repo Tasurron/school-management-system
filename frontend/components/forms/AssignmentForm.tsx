@@ -3,74 +3,120 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { assignmentSchema, AssignmentFormValues } from "@/schemas/assignmentSchema";
+import {
+  assignmentSchema,
+  AssignmentFormValues,
+  ALLOWED_ATTACHMENT_EXTENSIONS,
+} from "@/schemas/assignmentSchema";
+import { GRADE_OPTIONS, SECTION_OPTIONS } from "@/schemas/classSchema";
 import * as assignmentService from "@/services/assignmentService";
 import { getErrorMessage } from "@/services/axiosInstance";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Button } from "@/components/ui/Button";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { Assignment } from "@/types/assignment";
-import { TeacherAssignment } from "@/types/teacherAssignment";
+import { Subject } from "@/types/subject";
 
 interface AssignmentFormProps {
-  /** The signed-in teacher's own (class, subject) combinations they may pick from. */
-  teacherAssignments: TeacherAssignment[];
+  subjects: Subject[];
   assignment?: Assignment;
   onSuccess: (assignment: Assignment) => void;
   onCancel: () => void;
 }
 
-function toDateTimeLocalValue(isoString: string): string {
-  // <input type="datetime-local"> needs "YYYY-MM-DDTHH:mm" in local time.
-  const date = new Date(isoString);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
+interface DeadlineParts {
+  date: string; // "YYYY-MM-DD" - the value format <input type="date"> always uses internally
+  time: string; // "HH:mm"
 }
 
-export function AssignmentForm({
-  teacherAssignments,
-  assignment,
-  onSuccess,
-  onCancel,
-}: AssignmentFormProps) {
-  const [serverError, setServerError] = useState<string | null>(null);
-  const isEdit = !!assignment;
+function splitDeadline(isoString?: string): DeadlineParts {
+  if (!isoString) {
+    return { date: "", time: "" };
+  }
+  const date = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+    time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+  };
+}
 
-  const defaultKey = assignment ? `${assignment.classId}:${assignment.subjectId}` : "";
+function combineDeadline(parts: DeadlineParts): string {
+  if (!parts.date || !parts.time) return "";
+  const [year, month, day] = parts.date.split("-").map(Number);
+  const [hours, minutes] = parts.time.split(":").map(Number);
+  const date = new Date(year, month - 1, day, hours, minutes);
+  return date.toISOString();
+}
+
+export function AssignmentForm({ subjects, assignment, onSuccess, onCancel }: AssignmentFormProps) {
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [deadlineParts, setDeadlineParts] = useState<DeadlineParts>(
+    splitDeadline(assignment?.deadline)
+  );
+  const isEdit = !!assignment;
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AssignmentFormValues>({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
       title: assignment?.title ?? "",
       description: assignment?.description ?? "",
-      deadline: assignment ? toDateTimeLocalValue(assignment.deadline) : "",
+      deadline: assignment?.deadline ? combineDeadline(splitDeadline(assignment.deadline)) : "",
       maxMarks: assignment?.maxMarks ?? 100,
-      classSubjectKey: defaultKey,
+      classGrade: assignment?.classGrade,
+      classSection: assignment?.classSection ?? "",
+      subjectId: assignment?.subjectId,
       status: assignment?.status ?? "Draft",
+      removeAttachment: false,
     },
   });
 
+  const removeAttachment = watch("removeAttachment");
+  const attachmentFile = watch("attachment");
+
+  function updateDeadlinePart(patch: Partial<DeadlineParts>) {
+    const next = { ...deadlineParts, ...patch };
+    setDeadlineParts(next);
+    setValue("deadline", combineDeadline(next), { shouldValidate: true });
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setValue("attachment", file, { shouldValidate: true });
+    if (file) {
+      setValue("removeAttachment", false);
+    }
+  }
+
   async function onSubmit(values: AssignmentFormValues) {
     setServerError(null);
-    const [classIdStr, subjectIdStr] = values.classSubjectKey.split(":");
+
+    if (!values.classGrade || !values.classSection || !values.subjectId) {
+      setServerError("Please select a class, section, and subject.");
+      return;
+    }
 
     try {
       const input = {
         title: values.title,
         description: values.description,
-        deadline: new Date(values.deadline).toISOString(),
+        deadline: values.deadline,
         maxMarks: values.maxMarks,
-        classId: Number(classIdStr),
-        subjectId: Number(subjectIdStr),
+        classGrade: values.classGrade,
+        classSection: values.classSection,
+        subjectId: values.subjectId,
         status: values.status,
+        attachment: values.attachment ?? undefined,
+        removeAttachment: values.removeAttachment,
       };
 
       const saved = isEdit
@@ -87,34 +133,112 @@ export function AssignmentForm({
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       {serverError && <ErrorMessage message={serverError} />}
       <Input label="Title" error={errors.title?.message} {...register("title")} />
-      <Textarea
-        label="Description"
-        error={errors.description?.message}
-        {...register("description")}
-      />
+
+      <div className="flex flex-col gap-1">
+        <Textarea
+          label="Description"
+          error={errors.description?.message}
+          {...register("description")}
+        />
+        <input
+          type="file"
+          accept={ALLOWED_ATTACHMENT_EXTENSIONS.join(",")}
+          onChange={handleFileChange}
+          className="mt-2 rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm file:mr-3 file:rounded file:border-0 file:bg-navy-800 file:px-3 file:py-1.5 file:text-white"
+        />
+        <p className="text-xs text-slate-400">
+          Attach a Word, PDF, Excel, or image file (up to 10 MB) - optional.
+        </p>
+        {errors.attachment?.message && (
+          <p className="text-xs text-red-600">{errors.attachment.message}</p>
+        )}
+        {isEdit && assignment?.attachmentFileName && !attachmentFile && (
+          <div className="mt-1 flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+            <span className={removeAttachment ? "text-slate-400 line-through" : "text-slate-700"}>
+              Current file: {assignment.attachmentFileName}
+            </span>
+            <button
+              type="button"
+              onClick={() => setValue("removeAttachment", !removeAttachment)}
+              className="text-xs font-medium text-red-600 hover:text-red-700"
+            >
+              {removeAttachment ? "Undo" : "Remove"}
+            </button>
+          </div>
+        )}
+      </div>
+
       <Select
-        label="Class + Subject"
-        error={errors.classSubjectKey?.message}
-        {...register("classSubjectKey")}
-        defaultValue={defaultKey}
+        label="Class"
+        error={errors.classGrade?.message}
+        value={watch("classGrade") ?? ""}
+        onChange={(e) => setValue("classGrade", e.target.value ? Number(e.target.value) : undefined, { shouldValidate: true })}
       >
         <option value="" disabled>
-          Select class + subject
+          Select a class
         </option>
-        {teacherAssignments.map((ta) => (
-          <option key={ta.id} value={`${ta.classId}:${ta.subjectId}`}>
-            {ta.className} - {ta.subjectName}
+        {GRADE_OPTIONS.map((g) => (
+          <option key={g} value={g}>
+            Class {g}
           </option>
         ))}
       </Select>
+
+      <Select
+        label="Section"
+        error={errors.classSection?.message}
+        value={watch("classSection") ?? ""}
+        onChange={(e) => setValue("classSection", e.target.value, { shouldValidate: true })}
+      >
+        <option value="" disabled>
+          Select a section
+        </option>
+        {SECTION_OPTIONS.map((s) => (
+          <option key={s} value={s}>
+            Section {s}
+          </option>
+        ))}
+      </Select>
+
+      <Select
+        label="Subject"
+        error={errors.subjectId?.message}
+        value={watch("subjectId") ?? ""}
+        onChange={(e) => setValue("subjectId", e.target.value ? Number(e.target.value) : undefined, { shouldValidate: true })}
+      >
+        <option value="" disabled>
+          Select a subject
+        </option>
+        {subjects.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.name}
+          </option>
+        ))}
+      </Select>
+
+      <div className="flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-4">
+          <DatePicker
+            label="Deadline date"
+            value={deadlineParts.date}
+            onChange={(iso) => updateDeadlinePart({ date: iso })}
+            error={errors.deadline && !deadlineParts.date ? " " : undefined}
+          />
+          <Input
+            label="Deadline time"
+            type="time"
+            value={deadlineParts.time}
+            onChange={(e) => updateDeadlinePart({ time: e.target.value })}
+            error={errors.deadline && !deadlineParts.time ? " " : undefined}
+          />
+        </div>
+        {errors.deadline?.message && (
+          <p className="text-xs text-red-600">{errors.deadline.message}</p>
+        )}
+      </div>
+
       <Input
-        label="Deadline"
-        type="datetime-local"
-        error={errors.deadline?.message}
-        {...register("deadline")}
-      />
-      <Input
-        label="Max marks"
+        label="Marks"
         type="number"
         error={errors.maxMarks?.message}
         {...register("maxMarks", { valueAsNumber: true })}

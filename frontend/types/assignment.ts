@@ -9,12 +9,15 @@ export interface Assignment {
   status: AssignmentStatus;
   classId: number;
   className: string;
+  classGrade: number;
+  classSection: string;
   subjectId: number;
   subjectName: string;
   teacherId: number;
   teacherName: string;
   createdAt: string;
   updatedAt: string | null;
+  attachmentFileName: string | null;
 }
 
 export interface AssignmentInput {
@@ -22,7 +25,10 @@ export interface AssignmentInput {
   description: string;
   deadline: string;
   maxMarks: number;
-  classId: number;
+  classGrade: number;
+  classSection: string;
   subjectId: number;
   status?: AssignmentStatus;
+  attachment?: File | null;
+  removeAttachment?: boolean;
 }

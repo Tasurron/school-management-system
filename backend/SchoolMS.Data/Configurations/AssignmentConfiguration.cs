@@ -32,6 +32,10 @@ public class AssignmentConfiguration : IEntityTypeConfiguration<Assignment>
             .HasConversion<int>()
             .HasDefaultValue(SchoolMS.Data.Enums.AssignmentStatus.Draft);
 
+        builder.Property(a => a.AttachmentFileName).HasMaxLength(255);
+        builder.Property(a => a.AttachmentStoredName).HasMaxLength(255);
+        builder.Property(a => a.AttachmentContentType).HasMaxLength(150);
+
         builder.Property(a => a.CreatedAt)
             .HasColumnType("timestamptz");
 

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { classSchema, ClassFormValues } from "@/schemas/classSchema";
+import { classSchema, ClassFormValues, GRADE_OPTIONS, SECTION_OPTIONS } from "@/schemas/classSchema";
 import * as classService from "@/services/classService";
 import { getErrorMessage } from "@/services/axiosInstance";
-import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { SchoolClass } from "@/types/class";
@@ -27,7 +27,10 @@ export function ClassForm({ schoolClass, onSuccess, onCancel }: ClassFormProps) 
     formState: { errors, isSubmitting },
   } = useForm<ClassFormValues>({
     resolver: zodResolver(classSchema),
-    defaultValues: { name: schoolClass?.name ?? "" },
+    defaultValues: {
+      grade: schoolClass?.grade,
+      section: schoolClass?.section as ClassFormValues["section"] | undefined,
+    },
   });
 
   async function onSubmit(values: ClassFormValues) {
@@ -47,7 +50,36 @@ export function ClassForm({ schoolClass, onSuccess, onCancel }: ClassFormProps) 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       {serverError && <ErrorMessage message={serverError} />}
-      <Input label="Class name" error={errors.name?.message} {...register("name")} />
+      <Select
+        label="Class"
+        error={errors.grade?.message}
+        defaultValue={schoolClass?.grade ?? ""}
+        {...register("grade", { valueAsNumber: true })}
+      >
+        <option value="" disabled>
+          Select a class
+        </option>
+        {GRADE_OPTIONS.map((g) => (
+          <option key={g} value={g}>
+            Class {g}
+          </option>
+        ))}
+      </Select>
+      <Select
+        label="Section"
+        error={errors.section?.message}
+        defaultValue={schoolClass?.section ?? ""}
+        {...register("section")}
+      >
+        <option value="" disabled>
+          Select a section
+        </option>
+        {SECTION_OPTIONS.map((s) => (
+          <option key={s} value={s}>
+            Section {s}
+          </option>
+        ))}
+      </Select>
       <div className="mt-2 flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel

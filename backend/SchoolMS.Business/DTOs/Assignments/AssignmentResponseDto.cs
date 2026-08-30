@@ -11,6 +11,8 @@ public class AssignmentResponseDto
 
     public int ClassId { get; set; }
     public string ClassName { get; set; } = string.Empty;
+    public int ClassGrade { get; set; }
+    public string ClassSection { get; set; } = string.Empty;
 
     public int SubjectId { get; set; }
     public string SubjectName { get; set; } = string.Empty;
@@ -20,4 +22,7 @@ public class AssignmentResponseDto
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    // Null when no file was attached.
+    public string? AttachmentFileName { get; set; }
 }

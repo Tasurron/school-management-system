@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using MockQueryable.Moq;
 using MockQueryable;
 using Moq;
@@ -15,14 +16,24 @@ public class AssignmentServiceTests
 {
     private readonly Mock<IAssignmentRepository> _assignmentRepositoryMock = new();
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
-    private readonly Mock<ITeacherSubjectClassRepository> _teacherSubjectClassRepositoryMock = new();
+    private readonly Mock<IClassRepository> _classRepositoryMock = new();
+    private readonly Mock<IWebHostEnvironment> _environmentMock = new();
 
-    private static readonly Class TestClass = new() { Id = 10, Name = "Class 10-A" };
+    private static readonly Class TestClass = new() { Id = 10, Grade = 10, Section = "A", Name = "Class 10 - Section A" };
     private static readonly Subject TestSubject = new() { Id = 20, Name = "Mathematics" };
     private static readonly User TestTeacher = new() { Id = 30, FullName = "Mr. Teacher", Email = "t@school.com", Role = UserRole.Teacher };
 
-    private AssignmentService CreateService() =>
-        new(_assignmentRepositoryMock.Object, _userRepositoryMock.Object, _teacherSubjectClassRepositoryMock.Object);
+    private AssignmentService CreateService()
+    {
+        _environmentMock.Setup(e => e.ContentRootPath).Returns(Path.GetTempPath());
+        // Default: the (Grade, Section) used by ValidCreateRequest() already exists.
+        _classRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestClass }.BuildMock());
+        return new(
+            _assignmentRepositoryMock.Object,
+            _userRepositoryMock.Object,
+            _classRepositoryMock.Object,
+            _environmentMock.Object);
+    }
 
     private void SetupAddCapture(out Func<Assignment?> getSaved)
     {
@@ -51,7 +62,8 @@ public class AssignmentServiceTests
         Description = "Solve problems 1-10",
         Deadline = DateTime.UtcNow.AddDays(5),
         MaxMarks = 100,
-        ClassId = TestClass.Id,
+        ClassGrade = TestClass.Grade,
+        ClassSection = TestClass.Section,
         SubjectId = TestSubject.Id
     };
 
@@ -78,28 +90,54 @@ public class AssignmentServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WhenTeacherNotLinkedToSubjectClass_ThrowsForbiddenException()
+    public async Task CreateAsync_WithInvalidGrade_ThrowsBusinessRuleException()
     {
-        _teacherSubjectClassRepositoryMock
-            .Setup(r => r.Query())
-            .Returns(Array.Empty<TeacherSubjectClass>().BuildMock());
+        var request = ValidCreateRequest();
+        request.ClassGrade = 7;
 
         var service = CreateService();
-        var request = ValidCreateRequest();
 
-        await Assert.ThrowsAsync<ForbiddenException>(() => service.CreateAsync(request, TestTeacher.Id));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(request, TestTeacher.Id));
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithInvalidSection_ThrowsBusinessRuleException()
+    {
+        var request = ValidCreateRequest();
+        request.ClassSection = "C";
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(request, TestTeacher.Id));
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenClassDoesNotExistYet_CreatesItAutomatically()
+    {
+        _classRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<Class>().BuildMock());
+        Class? createdClass = null;
+        _classRepositoryMock
+            .Setup(r => r.AddAsync(It.IsAny<Class>()))
+            .Callback<Class>(c => createdClass = c)
+            .Returns(Task.CompletedTask);
+
+        SetupAddCapture(out _);
+
+        var service = CreateService();
+        // Re-apply the empty Query() setup since CreateService() also sets a default.
+        _classRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<Class>().BuildMock());
+
+        await service.CreateAsync(ValidCreateRequest(), TestTeacher.Id);
+
+        Assert.NotNull(createdClass);
+        Assert.Equal(TestClass.Grade, createdClass!.Grade);
+        Assert.Equal(TestClass.Section, createdClass.Section);
+        Assert.Equal("Class 10 - Section A", createdClass.Name);
     }
 
     [Fact]
     public async Task CreateAsync_WithValidRequestAndNoStatus_DefaultsToDraft()
     {
-        _teacherSubjectClassRepositoryMock
-            .Setup(r => r.Query())
-            .Returns(new[]
-            {
-                new TeacherSubjectClass { TeacherId = TestTeacher.Id, SubjectId = TestSubject.Id, ClassId = TestClass.Id }
-            }.BuildMock());
-
         SetupAddCapture(out var getSaved);
 
         var service = CreateService();
@@ -134,6 +172,9 @@ public class AssignmentServiceTests
             Description = "New Desc",
             Deadline = DateTime.UtcNow.AddDays(10),
             MaxMarks = 60,
+            ClassGrade = TestClass.Grade,
+            ClassSection = TestClass.Section,
+            SubjectId = TestSubject.Id,
             Status = "Draft"
         };
 
@@ -182,6 +223,9 @@ public class AssignmentServiceTests
             Description = "Updated Desc",
             Deadline = DateTime.UtcNow.AddDays(15),
             MaxMarks = 75,
+            ClassGrade = TestClass.Grade,
+            ClassSection = TestClass.Section,
+            SubjectId = TestSubject.Id,
             Status = "Published"
         };
 

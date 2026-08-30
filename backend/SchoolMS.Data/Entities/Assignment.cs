@@ -11,6 +11,12 @@ public class Assignment
     public int MaxMarks { get; set; }
     public AssignmentStatus Status { get; set; } = AssignmentStatus.Draft;
 
+    // Optional single attachment (Word/PDF/Excel/image). Null when no file was uploaded.
+    public string? AttachmentFileName { get; set; }
+    public string? AttachmentStoredName { get; set; }
+    public string? AttachmentContentType { get; set; }
+    public long? AttachmentSize { get; set; }
+
     public int ClassId { get; set; }
     public Class Class { get; set; } = null!;
 

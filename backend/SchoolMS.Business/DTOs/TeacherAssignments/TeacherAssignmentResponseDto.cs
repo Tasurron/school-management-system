@@ -9,5 +9,7 @@ public class TeacherAssignmentResponseDto
     public string SubjectName { get; set; } = string.Empty;
     public int ClassId { get; set; }
     public string ClassName { get; set; } = string.Empty;
+    public int ClassGrade { get; set; }
+    public string ClassSection { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

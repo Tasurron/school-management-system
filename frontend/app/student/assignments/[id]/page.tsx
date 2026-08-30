@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { SubmissionForm } from "@/components/forms/SubmissionForm";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { AttachmentLink } from "@/components/ui/AttachmentLink";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
@@ -69,13 +70,18 @@ export default function StudentAssignmentDetailPage() {
         <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
           {assignment.description}
         </p>
+        {assignment.attachmentFileName && (
+          <div className="mt-3">
+            <AttachmentLink assignmentId={assignment.id} fileName={assignment.attachmentFileName} />
+          </div>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="font-medium text-slate-500">Deadline</p>
             <p className="text-slate-800">{new Date(assignment.deadline).toLocaleString()}</p>
           </div>
           <div>
-            <p className="font-medium text-slate-500">Max marks</p>
+            <p className="font-medium text-slate-500">Marks</p>
             <p className="text-slate-800">{assignment.maxMarks}</p>
           </div>
         </div>

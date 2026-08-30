@@ -1,8 +1,11 @@
 export interface SchoolClass {
   id: number;
+  grade: number;
+  section: string;
   name: string;
 }
 
 export interface ClassInput {
-  name: string;
+  grade: number;
+  section: string;
 }

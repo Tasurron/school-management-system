@@ -14,6 +14,11 @@ out/
 [Tt]est[Rr]esult*/
 *.trx
 
+# Uploaded assignment attachments (user content, not source)
+# (ignoring the contents, not the folder itself, so the .gitkeep below still gets tracked)
+SchoolMS.Api/uploads/*
+!SchoolMS.Api/uploads/.gitkeep
+
 # NOTE on appsettings.Development.json:
 # It is intentionally NOT gitignored. It only contains a throwaway local
 # PostgreSQL password ("1234") for a database that only exists on this

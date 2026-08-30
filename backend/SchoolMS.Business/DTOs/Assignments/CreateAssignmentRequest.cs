@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace SchoolMS.Business.DTOs.Assignments;
 
@@ -18,11 +19,17 @@ public class CreateAssignmentRequest
     public int MaxMarks { get; set; }
 
     [Required]
-    public int ClassId { get; set; }
+    public int ClassGrade { get; set; }
+
+    [Required]
+    public string ClassSection { get; set; } = string.Empty;
 
     [Required]
     public int SubjectId { get; set; }
 
     // Optional; defaults to Draft if not provided. "Draft" or "Published".
     public string? Status { get; set; }
+
+    // Optional single attachment (Word/PDF/Excel/image) - validated in AssignmentService.
+    public IFormFile? Attachment { get; set; }
 }

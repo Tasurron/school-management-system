@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
 /**
  * Extracts a human-readable message from an Axios error, handling both
  * ASP.NET's ProblemDetails validation shape ({ errors: { Field: [msg] } })
- * and simpler { title } / { message } shapes.
+ * and simpler { detail } / { title } / { message } shapes.
  */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -52,6 +52,12 @@ export function getErrorMessage(error: unknown): string {
           .flat()
           .filter(Boolean);
         if (messages.length > 0) return messages.join(" ");
+      }
+      // ASP.NET's ProblemDetails puts the specific reason in `detail` and only
+      // a generic category (e.g. "Business rule violation") in `title` - prefer
+      // detail so the user sees what actually went wrong, not just the category.
+      if ("detail" in data && typeof data.detail === "string" && data.detail) {
+        return data.detail;
       }
       if ("title" in data && typeof data.title === "string" && data.title) {
         return data.title;
