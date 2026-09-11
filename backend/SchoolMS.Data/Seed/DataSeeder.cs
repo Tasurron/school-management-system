@@ -25,20 +25,13 @@ public static class DataSeeder
         db.Classes.AddRange(class9A, class10A, class10B);
         await db.SaveChangesAsync();
 
-        // 2. Subjects - a shared list covering Classes 8-12 (Bangladesh National Curriculum-style).
-        var math = new Subject { Name = "Mathematics" };
-        var physics = new Subject { Name = "Physics" };
-        var english = new Subject { Name = "English" };
-        var cs = new Subject { Name = "Computer Science" };
-        var bangla = new Subject { Name = "Bangla" };
-        var chemistry = new Subject { Name = "Chemistry" };
-        var biology = new Subject { Name = "Biology" };
-        var ict = new Subject { Name = "ICT" };
-        var higherMath = new Subject { Name = "Higher Mathematics" };
-        var bgs = new Subject { Name = "Bangladesh & Global Studies" };
-        var religion = new Subject { Name = "Religion & Moral Education" };
-        db.Subjects.AddRange(math, physics, english, cs, bangla, chemistry, biology, ict, higherMath, bgs, religion);
-        await db.SaveChangesAsync();
+        // 2. Subjects - the full Class 8-12 curriculum is seeded by the AddSubjectGrades
+        // migration (which always runs before this seeder), so just look up the ones
+        // needed for the demo teacher-assignment/assignment data below.
+        var math = await db.Subjects.FirstAsync(s => s.Name == "Mathematics");
+        var physics = await db.Subjects.FirstAsync(s => s.Name == "Physics");
+        var english = await db.Subjects.FirstAsync(s => s.Name == "English");
+        var cs = await db.Subjects.FirstAsync(s => s.Name == "Computer Science");
 
         // 3. Users
         var admin = new User

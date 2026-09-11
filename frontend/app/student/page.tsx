@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
+import { formatDeadline } from "@/lib/formatDateTime";
 import { Assignment } from "@/types/assignment";
 
 export default function StudentDashboardPage() {
@@ -66,7 +67,7 @@ export default function StudentDashboardPage() {
                   {a.subjectName} - {a.className}
                 </p>
                 <p className="text-xs text-slate-400">
-                  Deadline: {new Date(a.deadline).toLocaleString()}
+                  Deadline: {formatDeadline(a.deadline)}
                 </p>
               </Link>
             );

@@ -9,6 +9,8 @@ namespace SchoolMS.Business.Services;
 
 public class SubjectService : ISubjectService
 {
+    private static readonly int[] AllowedGrades = { 8, 9, 10, 11, 12 };
+
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITeacherSubjectClassRepository _teacherSubjectClassRepository;
     private readonly IAssignmentRepository _assignmentRepository;
@@ -25,13 +27,13 @@ public class SubjectService : ISubjectService
 
     public async Task<List<SubjectResponseDto>> GetAllAsync()
     {
-        var subjects = await _subjectRepository.Query().OrderBy(s => s.Id).ToListAsync();
+        var subjects = await _subjectRepository.Query().Include(s => s.Grades).OrderBy(s => s.Id).ToListAsync();
         return subjects.Select(MapToDto).ToList();
     }
 
     public async Task<SubjectResponseDto> GetByIdAsync(int id)
     {
-        var subject = await _subjectRepository.GetByIdAsync(id);
+        var subject = await _subjectRepository.Query().Include(s => s.Grades).FirstOrDefaultAsync(s => s.Id == id);
         if (subject == null)
         {
             throw new NotFoundException($"Subject with id {id} was not found.");
@@ -48,7 +50,11 @@ public class SubjectService : ISubjectService
             throw new ConflictException($"A subject named '{request.Name}' already exists.");
         }
 
+        var grades = ValidateAndNormalizeGrades(request.ApplicableGrades);
+
         var subject = new Subject { Name = request.Name, Code = request.Code };
+        subject.Grades = grades.Select(g => new SubjectGrade { Grade = g }).ToList();
+
         await _subjectRepository.AddAsync(subject);
         await _subjectRepository.SaveChangesAsync();
 
@@ -57,7 +63,7 @@ public class SubjectService : ISubjectService
 
     public async Task<SubjectResponseDto> UpdateAsync(int id, SubjectRequest request)
     {
-        var subject = await _subjectRepository.GetByIdAsync(id);
+        var subject = await _subjectRepository.Query().Include(s => s.Grades).FirstOrDefaultAsync(s => s.Id == id);
         if (subject == null)
         {
             throw new NotFoundException($"Subject with id {id} was not found.");
@@ -69,8 +75,18 @@ public class SubjectService : ISubjectService
             throw new ConflictException($"A subject named '{request.Name}' already exists.");
         }
 
+        var grades = ValidateAndNormalizeGrades(request.ApplicableGrades);
+
         subject.Name = request.Name;
         subject.Code = request.Code;
+
+        // Simplest approach for a small list: replace the whole set of grades.
+        subject.Grades.Clear();
+        foreach (var grade in grades)
+        {
+            subject.Grades.Add(new SubjectGrade { Grade = grade });
+        }
+
         _subjectRepository.Update(subject);
         await _subjectRepository.SaveChangesAsync();
 
@@ -96,10 +112,24 @@ public class SubjectService : ISubjectService
         await _subjectRepository.SaveChangesAsync();
     }
 
+    private static List<int> ValidateAndNormalizeGrades(List<int> grades)
+    {
+        var distinct = grades.Distinct().ToList();
+        foreach (var grade in distinct)
+        {
+            if (!AllowedGrades.Contains(grade))
+            {
+                throw new BusinessRuleException("Each grade must be one of: 8, 9, 10, 11, 12.");
+            }
+        }
+        return distinct;
+    }
+
     private static SubjectResponseDto MapToDto(Subject subject) => new()
     {
         Id = subject.Id,
         Name = subject.Name,
-        Code = subject.Code
+        Code = subject.Code,
+        ApplicableGrades = subject.Grades.Select(g => g.Grade).OrderBy(g => g).ToList()
     };
 }

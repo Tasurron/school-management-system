@@ -11,6 +11,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
 import * as submissionService from "@/services/submissionService";
+import { formatDeadline } from "@/lib/formatDateTime";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 
@@ -78,7 +79,7 @@ export default function StudentAssignmentDetailPage() {
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="font-medium text-slate-500">Deadline</p>
-            <p className="text-slate-800">{new Date(assignment.deadline).toLocaleString()}</p>
+            <p className="text-slate-800">{formatDeadline(assignment.deadline)}</p>
           </div>
           <div>
             <p className="font-medium text-slate-500">Marks</p>

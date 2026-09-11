@@ -34,17 +34,20 @@ public class AssignmentService : IAssignmentService
     private readonly IAssignmentRepository _assignmentRepository;
     private readonly IUserRepository _userRepository;
     private readonly IClassRepository _classRepository;
+    private readonly ISubjectRepository _subjectRepository;
     private readonly string _attachmentsRoot;
 
     public AssignmentService(
         IAssignmentRepository assignmentRepository,
         IUserRepository userRepository,
         IClassRepository classRepository,
+        ISubjectRepository subjectRepository,
         IWebHostEnvironment environment)
     {
         _assignmentRepository = assignmentRepository;
         _userRepository = userRepository;
         _classRepository = classRepository;
+        _subjectRepository = subjectRepository;
         _attachmentsRoot = Path.Combine(environment.ContentRootPath, "uploads", "assignments");
         Directory.CreateDirectory(_attachmentsRoot);
     }
@@ -131,6 +134,7 @@ public class AssignmentService : IAssignmentService
         }
 
         var classEntity = await FindOrCreateClassAsync(request.ClassGrade, request.ClassSection);
+        await EnsureSubjectValidForGradeAsync(request.SubjectId, classEntity.Grade);
 
         var status = AssignmentStatus.Draft;
         if (!string.IsNullOrWhiteSpace(request.Status))
@@ -190,6 +194,7 @@ public class AssignmentService : IAssignmentService
         }
 
         var classEntity = await FindOrCreateClassAsync(request.ClassGrade, request.ClassSection);
+        await EnsureSubjectValidForGradeAsync(request.SubjectId, classEntity.Grade);
 
         assignment.Title = request.Title;
         assignment.Description = request.Description;
@@ -274,6 +279,21 @@ public class AssignmentService : IAssignmentService
         await _classRepository.AddAsync(newClass);
         await _classRepository.SaveChangesAsync();
         return newClass;
+    }
+
+    // Stops a subject/class mismatch even if someone bypasses the dropdown and
+    // calls the API directly - the subject must actually be taught in that grade.
+    private async Task EnsureSubjectValidForGradeAsync(int subjectId, int grade)
+    {
+        var isValid = await _subjectRepository.Query()
+            .Where(s => s.Id == subjectId)
+            .SelectMany(s => s.Grades)
+            .AnyAsync(g => g.Grade == grade);
+
+        if (!isValid)
+        {
+            throw new BusinessRuleException("This subject is not available for the selected class.");
+        }
     }
 
     private async Task<Assignment> GetVisibleAssignmentAsync(int id, int currentUserId, string currentUserRole)

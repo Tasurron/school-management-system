@@ -11,4 +11,8 @@ public class SubjectRequest
 
     [MaxLength(20)]
     public string? Code { get; set; }
+
+    // Which grades (8-12) this subject should apply to. Can be left empty for
+    // a subject that isn't tied to a specific grade (e.g. a legacy subject).
+    public List<int> ApplicableGrades { get; set; } = new();
 }

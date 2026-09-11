@@ -8,6 +8,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
 import * as submissionService from "@/services/submissionService";
+import { formatDeadline } from "@/lib/formatDateTime";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 
@@ -79,7 +80,7 @@ export default function AdminOverviewPage() {
                             {a.status}
                           </Badge>
                         </Td>
-                        <Td>{new Date(a.deadline).toLocaleString()}</Td>
+                        <Td>{formatDeadline(a.deadline)}</Td>
                         <Td>{a.maxMarks}</Td>
                       </tr>
                     ))}

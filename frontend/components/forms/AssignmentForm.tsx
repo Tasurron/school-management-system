@@ -82,6 +82,15 @@ export function AssignmentForm({ subjects, assignment, onSuccess, onCancel }: As
 
   const removeAttachment = watch("removeAttachment");
   const attachmentFile = watch("attachment");
+  const classGrade = watch("classGrade");
+  const subjectId = watch("subjectId");
+
+  // Only show subjects offered for the selected class. The assignment's current subject stays
+  // visible even if it isn't offered for that grade (e.g. a legacy subject like "Computer
+  // Science" on an older assignment), so editing doesn't force the teacher to change it.
+  const filteredSubjects = subjects.filter(
+    (s) => (classGrade !== undefined && s.applicableGrades.includes(classGrade)) || s.id === subjectId
+  );
 
   function updateDeadlinePart(patch: Partial<DeadlineParts>) {
     const next = { ...deadlineParts, ...patch };
@@ -171,8 +180,14 @@ export function AssignmentForm({ subjects, assignment, onSuccess, onCancel }: As
       <Select
         label="Class"
         error={errors.classGrade?.message}
-        value={watch("classGrade") ?? ""}
-        onChange={(e) => setValue("classGrade", e.target.value ? Number(e.target.value) : undefined, { shouldValidate: true })}
+        value={classGrade ?? ""}
+        onChange={(e) => {
+          const grade = e.target.value ? Number(e.target.value) : undefined;
+          setValue("classGrade", grade, { shouldValidate: true });
+          // The subject list depends on the class, so a subject picked for the old class may no
+          // longer apply - clear it and make the teacher choose again from the new list.
+          setValue("subjectId", undefined, { shouldValidate: true });
+        }}
       >
         <option value="" disabled>
           Select a class
@@ -203,13 +218,14 @@ export function AssignmentForm({ subjects, assignment, onSuccess, onCancel }: As
       <Select
         label="Subject"
         error={errors.subjectId?.message}
-        value={watch("subjectId") ?? ""}
+        value={subjectId ?? ""}
+        disabled={classGrade === undefined}
         onChange={(e) => setValue("subjectId", e.target.value ? Number(e.target.value) : undefined, { shouldValidate: true })}
       >
         <option value="" disabled>
-          Select a subject
+          {classGrade === undefined ? "Select a class first" : "Select a subject"}
         </option>
-        {subjects.map((s) => (
+        {filteredSubjects.map((s) => (
           <option key={s.id} value={s.id}>
             {s.name}
           </option>

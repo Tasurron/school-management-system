@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Class> Classes => Set<Class>();
     public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<SubjectGrade> SubjectGrades => Set<SubjectGrade>();
     public DbSet<TeacherSubjectClass> TeacherSubjectClasses => Set<TeacherSubjectClass>();
     public DbSet<Assignment> Assignments => Set<Assignment>();
     public DbSet<Submission> Submissions => Set<Submission>();
@@ -24,6 +25,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new ClassConfiguration());
         modelBuilder.ApplyConfiguration(new SubjectConfiguration());
+        modelBuilder.ApplyConfiguration(new SubjectGradeConfiguration());
         modelBuilder.ApplyConfiguration(new TeacherSubjectClassConfiguration());
         modelBuilder.ApplyConfiguration(new AssignmentConfiguration());
         modelBuilder.ApplyConfiguration(new SubmissionConfiguration());

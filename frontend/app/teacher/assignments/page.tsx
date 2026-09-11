@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
+import { getSubjectAbbreviation } from "@/lib/subjectAbbreviations";
+import { formatDeadline } from "@/lib/formatDateTime";
 import { Assignment } from "@/types/assignment";
 
 export default function TeacherAssignmentsPage() {
@@ -117,35 +119,42 @@ export default function TeacherAssignmentsPage() {
                       )}
                     </span>
                   </Td>
-                  <Td>{a.className}</Td>
-                  <Td>{a.subjectName}</Td>
+                  <Td>
+                    <span title={a.className}>
+                      {a.classGrade}
+                      {a.classSection}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span title={a.subjectName}>{getSubjectAbbreviation(a.subjectName)}</span>
+                  </Td>
                   <Td>
                     <Badge tone={a.status === "Published" ? "green" : "gray"}>{a.status}</Badge>
                   </Td>
-                  <Td>{new Date(a.deadline).toLocaleString()}</Td>
+                  <Td>{formatDeadline(a.deadline)}</Td>
                   <Td>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                       <Link
                         href={`/teacher/assignments/${a.id}/submissions`}
-                        className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
+                        className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
                       >
                         Submissions
                       </Link>
                       <Link
                         href={`/teacher/assignments/${a.id}/edit`}
-                        className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
+                        className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
                       >
                         Edit
                       </Link>
                       <Button
-                        size="sm"
+                        size="md"
                         variant="secondary"
                         isLoading={busyId === a.id}
                         onClick={() => handleToggleStatus(a)}
                       >
                         {a.status === "Published" ? "Unpublish" : "Publish"}
                       </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleDelete(a)}>
+                      <Button size="md" variant="danger" onClick={() => handleDelete(a)}>
                         Delete
                       </Button>
                     </div>

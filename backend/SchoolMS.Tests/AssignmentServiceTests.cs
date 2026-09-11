@@ -17,21 +17,30 @@ public class AssignmentServiceTests
     private readonly Mock<IAssignmentRepository> _assignmentRepositoryMock = new();
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly Mock<IClassRepository> _classRepositoryMock = new();
+    private readonly Mock<ISubjectRepository> _subjectRepositoryMock = new();
     private readonly Mock<IWebHostEnvironment> _environmentMock = new();
 
     private static readonly Class TestClass = new() { Id = 10, Grade = 10, Section = "A", Name = "Class 10 - Section A" };
-    private static readonly Subject TestSubject = new() { Id = 20, Name = "Mathematics" };
+    private static readonly Subject TestSubject = new()
+    {
+        Id = 20,
+        Name = "Mathematics",
+        Grades = new List<SubjectGrade> { new() { Grade = 10 } }
+    };
     private static readonly User TestTeacher = new() { Id = 30, FullName = "Mr. Teacher", Email = "t@school.com", Role = UserRole.Teacher };
 
     private AssignmentService CreateService()
     {
         _environmentMock.Setup(e => e.ContentRootPath).Returns(Path.GetTempPath());
-        // Default: the (Grade, Section) used by ValidCreateRequest() already exists.
+        // Default: the (Grade, Section) used by ValidCreateRequest() already exists,
+        // and TestSubject is already valid for TestClass.Grade.
         _classRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestClass }.BuildMock());
+        _subjectRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestSubject }.BuildMock());
         return new(
             _assignmentRepositoryMock.Object,
             _userRepositoryMock.Object,
             _classRepositoryMock.Object,
+            _subjectRepositoryMock.Object,
             _environmentMock.Object);
     }
 
@@ -105,6 +114,19 @@ public class AssignmentServiceTests
     {
         var request = ValidCreateRequest();
         request.ClassSection = "C";
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(request, TestTeacher.Id));
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenSubjectNotOfferedForGrade_ThrowsBusinessRuleException()
+    {
+        // TestSubject is only mapped to grade 10; request a different grade.
+        var request = ValidCreateRequest();
+        request.ClassGrade = 8;
+        request.ClassSection = "A";
 
         var service = CreateService();
 
