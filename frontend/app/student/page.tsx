@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -15,6 +16,7 @@ export default function StudentDashboardPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -32,12 +34,28 @@ export default function StudentDashboardPage() {
   }, []);
 
   const now = new Date();
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredAssignments = normalizedQuery
+    ? assignments.filter((a) =>
+        [a.title, a.subjectName, a.className].some((field) =>
+          field.toLowerCase().includes(normalizedQuery)
+        )
+      )
+    : assignments;
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">My Assignments</h1>
-        <p className="mt-1 text-sm text-slate-500">Published assignments for your class.</p>
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">My Assignments</h1>
+          <p className="mt-1 text-sm text-slate-500">Published assignments for your class.</p>
+        </div>
+        <SearchInput
+          placeholder="Search by title, subject, or class..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full sm:w-72"
+        />
       </div>
 
       {isLoading && <Spinner label="Loading assignments..." />}
@@ -47,9 +65,13 @@ export default function StudentDashboardPage() {
         <EmptyState message="No assignments have been published for your class yet." />
       )}
 
-      {!isLoading && !error && assignments.length > 0 && (
+      {!isLoading && !error && assignments.length > 0 && filteredAssignments.length === 0 && (
+        <EmptyState message="No assignments match your search." />
+      )}
+
+      {!isLoading && !error && filteredAssignments.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {assignments.map((a) => {
+          {filteredAssignments.map((a) => {
             const isPastDeadline = now > new Date(a.deadline);
             return (
               <Link

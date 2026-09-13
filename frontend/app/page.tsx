@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Spinner } from "@/components/ui/Spinner";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { Role } from "@/types/user";
 
 const ROLE_HOME: Record<Role, string> = {
@@ -50,14 +51,53 @@ export default function Home() {
   );
 }
 
+// Briefly flashes a ring around the matched section so it's obvious what the
+// search jumped to, then removes it - no extra React state needed for this.
+function flashHighlight(element: HTMLElement) {
+  element.classList.add("ring-2", "ring-primary-500", "ring-offset-4");
+  window.setTimeout(() => {
+    element.classList.remove("ring-2", "ring-primary-500", "ring-offset-4");
+  }, 1600);
+}
+
 function TopNav() {
+  const [query, setQuery] = useState("");
+  const [notFound, setNotFound] = useState(false);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const match = searchPageSections(query);
+    if (!match) {
+      setNotFound(true);
+      return;
+    }
+    setNotFound(false);
+    const element = document.getElementById(match.id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      flashHighlight(element);
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <span className="flex items-center gap-2 text-lg font-bold text-navy-800">
           <GraduationCap className="h-6 w-6 text-primary-500" />
           School Management System
         </span>
+        <form onSubmit={handleSearch} className="order-3 w-full sm:order-none sm:w-64">
+          <SearchInput
+            submittable
+            placeholder="Search this page..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setNotFound(false);
+            }}
+          />
+          {notFound && <p className="mt-1 text-xs text-red-600">No matching section found.</p>}
+        </form>
         <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link
             href="/login"
@@ -117,24 +157,28 @@ function Hero() {
 
 const FEATURES = [
   {
+    id: "feature-assignment-management",
     icon: ClipboardList,
     title: "Assignment management",
     description:
       "Teachers create assignments for a class and subject, set a deadline and max marks, and publish when ready.",
   },
   {
+    id: "feature-deadline-aware-submissions",
     icon: CalendarClock,
     title: "Deadline-aware submissions",
     description:
       "Students submit before the deadline and can update their answer right up until it's graded.",
   },
   {
+    id: "feature-instant-grading",
     icon: CheckCircle2,
     title: "Instant grading & feedback",
     description:
       "Teachers grade submissions with marks and written feedback, visible to the student immediately.",
   },
   {
+    id: "feature-secure-access",
     icon: ShieldCheck,
     title: "Secure, role-based access",
     description:
@@ -156,7 +200,8 @@ function Features() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="group rounded border border-slate-100 bg-white p-6 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              id={feature.id}
+              className="group scroll-mt-24 rounded border border-slate-100 bg-white p-6 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-700 transition-transform duration-200 group-hover:scale-110">
                 <feature.icon className="h-6 w-6" />
@@ -173,21 +218,39 @@ function Features() {
 
 const ROLES = [
   {
+    id: "role-admin",
     icon: ShieldCheck,
     title: "Admin",
     description: "Manage users, classes, subjects, and assign teachers to their subjects and classes.",
   },
   {
+    id: "role-teacher",
     icon: BookOpen,
     title: "Teacher",
     description: "Create and publish assignments, review submissions, and grade with feedback.",
   },
   {
+    id: "role-student",
     icon: Users,
     title: "Student",
     description: "View assignments for your class, submit your work, and track your marks and feedback.",
   },
 ];
+
+// All searchable sections on this page, used by the nav's "search this page" box.
+const SEARCHABLE_SECTIONS = [...FEATURES, ...ROLES];
+
+function searchPageSections(rawQuery: string) {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) return null;
+  return (
+    SEARCHABLE_SECTIONS.find(
+      (section) =>
+        section.title.toLowerCase().includes(query) ||
+        section.description.toLowerCase().includes(query)
+    ) ?? undefined
+  );
+}
 
 function RoleHighlights() {
   return (
@@ -203,7 +266,8 @@ function RoleHighlights() {
           {ROLES.map((role) => (
             <div
               key={role.title}
-              className="group rounded bg-white p-8 text-center shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              id={role.id}
+              className="group scroll-mt-24 rounded bg-white p-8 text-center shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-navy-800 text-white transition-transform duration-200 group-hover:scale-110">
                 <role.icon className="h-7 w-7" />
