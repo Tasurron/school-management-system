@@ -41,7 +41,7 @@ export function LoginForm() {
         "Invalid email or password. Please double-check your details and try again."
       );
       // Keep the underlying message available for debugging via console.
-      console.error(getErrorMessage(error));
+      console.warn(getErrorMessage(error));
     }
   }
 

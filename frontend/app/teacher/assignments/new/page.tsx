@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AssignmentForm } from "@/components/forms/AssignmentForm";
+import { BackButton } from "@/components/ui/BackButton";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
@@ -30,6 +31,7 @@ export default function NewAssignmentPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <BackButton />
       <div>
         <h1 className="text-2xl font-bold text-slate-900">New Assignment</h1>
         <p className="mt-1 text-sm text-slate-500">

@@ -11,6 +11,7 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
 import * as submissionService from "@/services/submissionService";
+import { BackButton } from "@/components/ui/BackButton";
 import { formatDeadline } from "@/lib/formatDateTime";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
@@ -54,6 +55,7 @@ export default function StudentAssignmentDetailPage() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
+      <BackButton />
       <div>
         <div className="flex items-start justify-between gap-2">
           <h1 className="text-2xl font-bold text-slate-900">{assignment.title}</h1>
