@@ -129,7 +129,7 @@ export function DatePicker({ label, error, value, onChange }: DatePickerProps) {
                 type="button"
                 onClick={goToPreviousMonth}
                 disabled={isViewingCurrentMonth}
-                className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+                className="rounded-full p-1 text-slate-500 transition-transform duration-200 hover:scale-110 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100 disabled:hover:bg-transparent"
                 aria-label="Previous month"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -140,7 +140,7 @@ export function DatePicker({ label, error, value, onChange }: DatePickerProps) {
               <button
                 type="button"
                 onClick={goToNextMonth}
-                className="rounded p-1 text-slate-500 hover:bg-slate-100"
+                className="rounded-full p-1 text-slate-500 transition-transform duration-200 hover:scale-110 hover:bg-slate-100"
                 aria-label="Next month"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -168,7 +168,7 @@ export function DatePicker({ label, error, value, onChange }: DatePickerProps) {
                     type="button"
                     disabled={isPast}
                     onClick={() => selectDay(day)}
-                    className={`rounded py-1.5 text-sm transition-colors duration-200 ${
+                    className={`rounded-full py-1.5 text-sm transition-colors duration-200 ${
                       isPast
                         ? "cursor-not-allowed text-slate-300"
                         : isSelected

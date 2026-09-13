@@ -1,8 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -75,7 +77,10 @@ export default function SubjectsPage() {
           <h1 className="text-2xl font-bold text-slate-900">Subjects</h1>
           <p className="mt-1 text-sm text-slate-500">Manage the subjects taught in your school.</p>
         </div>
-        <Button onClick={openCreateModal}>Add subject</Button>
+        <Button onClick={openCreateModal}>
+          <Plus className="h-4 w-4" />
+          Add subject
+        </Button>
       </div>
 
       {actionError && <ErrorMessage message={actionError} />}
@@ -102,13 +107,14 @@ export default function SubjectsPage() {
                   <Td>{s.name}</Td>
                   <Td>{s.code ?? "-"}</Td>
                   <Td>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => openEditModal(s)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleDelete(s)}>
-                        Delete
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      <IconButton icon={Pencil} label="Edit subject" onClick={() => openEditModal(s)} />
+                      <IconButton
+                        icon={Trash2}
+                        label="Delete subject"
+                        tone="danger"
+                        onClick={() => handleDelete(s)}
+                      />
                     </div>
                   </Td>
                 </tr>

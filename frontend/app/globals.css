@@ -27,6 +27,22 @@ body {
   }
 }
 
+/* Pop-in used for dialogs/modals - fades in while scaling up slightly. */
+.scale-in {
+  animation: scaleIn 0.18s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Simple scrollbar styling for horizontally-scrolling tables */
 .table-scroll {
   overflow-x: auto;

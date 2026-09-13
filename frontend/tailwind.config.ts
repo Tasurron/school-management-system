@@ -11,7 +11,8 @@ const config: Config = {
         sans: ["var(--font-roboto)", "Arial", "Helvetica", "sans-serif"],
       },
       colors: {
-        // Amber/gold — primary action color (buttons, active icons, highlights)
+        // Gold/amber - primary action color (buttons, active icons, highlights).
+        // Matches the actual Akkhor reference template's accent color.
         primary: {
           50: "#fff8e6",
           100: "#ffefc2",
@@ -24,7 +25,8 @@ const config: Config = {
           800: "#9c6400",
           900: "#7a4f00",
         },
-        // Deep navy — sidebar, header gradients, secondary buttons
+        // Deep navy - sidebar, header, secondary buttons. Matches the actual
+        // Akkhor reference template's dark chrome color.
         navy: {
           50: "#eaf0f7",
           100: "#c9d8e8",

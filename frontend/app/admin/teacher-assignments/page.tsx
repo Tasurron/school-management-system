@@ -1,8 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -84,7 +86,10 @@ export default function TeacherAssignmentsPage() {
             Assign teachers to teach a subject for a class.
           </p>
         </div>
-        <Button onClick={() => setModalOpen(true)}>Assign teacher</Button>
+        <Button onClick={() => setModalOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Assign teacher
+        </Button>
       </div>
 
       {actionError && <ErrorMessage message={actionError} />}
@@ -113,9 +118,12 @@ export default function TeacherAssignmentsPage() {
                   <Td>{a.subjectName}</Td>
                   <Td>{a.className}</Td>
                   <Td>
-                    <Button size="sm" variant="danger" onClick={() => handleDelete(a)}>
-                      Remove
-                    </Button>
+                    <IconButton
+                      icon={Trash2}
+                      label="Remove teacher assignment"
+                      tone="danger"
+                      onClick={() => handleDelete(a)}
+                    />
                   </Td>
                 </tr>
               ))}

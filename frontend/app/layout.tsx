@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={roboto.variable}>
-      <body className="min-h-screen bg-[#f0f2f5] font-sans text-slate-900 antialiased">
+      <body className="min-h-screen bg-[#f5f5f5] font-sans text-slate-900 antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

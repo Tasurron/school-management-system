@@ -1,10 +1,11 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Pencil, ClipboardCheck } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconLink } from "@/components/ui/IconLink";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -80,12 +81,11 @@ export default function AssignmentSubmissionsPage() {
                   <Td>{s.marks !== null ? `${s.marks} / ${s.maxMarks}` : "-"}</Td>
                   <Td>{new Date(s.submittedAt).toLocaleString()}</Td>
                   <Td>
-                    <Link
+                    <IconLink
                       href={`/teacher/submissions/${s.id}/grade`}
-                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
-                    >
-                      {s.status === "Graded" ? "View / Update grade" : "Grade"}
-                    </Link>
+                      icon={s.status === "Graded" ? ClipboardCheck : Pencil}
+                      label={s.status === "Graded" ? "View / update grade" : "Grade submission"}
+                    />
                   </Td>
                 </tr>
               ))}

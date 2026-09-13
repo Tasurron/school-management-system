@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ClipboardList, CheckCircle2, FileEdit, Clock } from "lucide-react";
+import { ClipboardList, CheckCircle2, FileEdit, Clock, Plus } from "lucide-react";
 import { StatCard } from "@/components/ui/StatCard";
 import { Spinner } from "@/components/ui/Spinner";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -53,8 +53,9 @@ export default function TeacherDashboardPage() {
         </div>
         <Link
           href="/teacher/assignments/new"
-          className="inline-flex items-center justify-center rounded bg-primary-500 px-4 py-2.5 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-navy-800 hover:text-white"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary-500 px-5 py-2 text-sm font-semibold text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-navy-800 hover:text-white hover:shadow-md"
         >
+          <Plus className="h-4 w-4" />
           New assignment
         </Link>
       </div>

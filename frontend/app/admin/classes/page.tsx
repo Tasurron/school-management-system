@@ -1,8 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -75,7 +77,10 @@ export default function ClassesPage() {
           <h1 className="text-2xl font-bold text-slate-900">Classes</h1>
           <p className="mt-1 text-sm text-slate-500">Manage the classes in your school.</p>
         </div>
-        <Button onClick={openCreateModal}>Add class</Button>
+        <Button onClick={openCreateModal}>
+          <Plus className="h-4 w-4" />
+          Add class
+        </Button>
       </div>
 
       {actionError && <ErrorMessage message={actionError} />}
@@ -98,13 +103,14 @@ export default function ClassesPage() {
                 <tr key={c.id} className="transition-colors duration-200 hover:bg-slate-50">
                   <Td>{c.name}</Td>
                   <Td>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => openEditModal(c)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleDelete(c)}>
-                        Delete
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      <IconButton icon={Pencil} label="Edit class" onClick={() => openEditModal(c)} />
+                      <IconButton
+                        icon={Trash2}
+                        label="Delete class"
+                        tone="danger"
+                        onClick={() => handleDelete(c)}
+                      />
                     </div>
                   </Td>
                 </tr>

@@ -153,7 +153,7 @@ export function AssignmentForm({ subjects, assignment, onSuccess, onCancel }: As
           type="file"
           accept={ALLOWED_ATTACHMENT_EXTENSIONS.join(",")}
           onChange={handleFileChange}
-          className="mt-2 rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm file:mr-3 file:rounded file:border-0 file:bg-navy-800 file:px-3 file:py-1.5 file:text-white"
+          className="mt-2 rounded border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm file:mr-3 file:rounded-full file:border-0 file:bg-navy-800 file:px-4 file:py-1.5 file:text-white"
         />
         <p className="text-xs text-slate-400">
           Attach a Word, PDF, Excel, or image file (up to 10 MB) - optional.

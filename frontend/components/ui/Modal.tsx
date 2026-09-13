@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 fade-in">
       <div
-        className="w-full max-w-lg rounded bg-white p-6 shadow-xl fade-in"
+        className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl scale-in"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -34,10 +35,10 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-800 text-white transition-transform duration-200 hover:scale-110"
             aria-label="Close"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </div>
         {children}

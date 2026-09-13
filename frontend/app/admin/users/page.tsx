@@ -1,9 +1,11 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { Plus, Pencil, UserX } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -84,7 +86,10 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-slate-900">Users</h1>
           <p className="mt-1 text-sm text-slate-500">Manage admins, teachers, and students.</p>
         </div>
-        <Button onClick={openCreateModal}>Add user</Button>
+        <Button onClick={openCreateModal}>
+          <Plus className="h-4 w-4" />
+          Add user
+        </Button>
       </div>
 
       {actionError && <ErrorMessage message={actionError} />}
@@ -119,14 +124,15 @@ export default function UsersPage() {
                     </Badge>
                   </Td>
                   <Td>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => openEditModal(u)}>
-                        Edit
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      <IconButton icon={Pencil} label="Edit user" onClick={() => openEditModal(u)} />
                       {u.isActive !== false && (
-                        <Button size="sm" variant="danger" onClick={() => handleDeactivate(u)}>
-                          Deactivate
-                        </Button>
+                        <IconButton
+                          icon={UserX}
+                          label="Deactivate user"
+                          tone="danger"
+                          onClick={() => handleDeactivate(u)}
+                        />
                       )}
                     </div>
                   </Td>

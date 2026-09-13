@@ -2,10 +2,11 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
-import { Paperclip } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Paperclip, ClipboardList, Pencil, Eye, EyeOff, Trash2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconButton } from "@/components/ui/IconButton";
+import { IconLink } from "@/components/ui/IconLink";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -83,8 +84,9 @@ export default function TeacherAssignmentsPage() {
         </div>
         <Link
           href="/teacher/assignments/new"
-          className="inline-flex items-center justify-center rounded bg-primary-500 px-4 py-2.5 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-navy-800 hover:text-white"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary-500 px-5 py-2 text-sm font-semibold tracking-[0.03em] text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-navy-800 hover:text-white hover:shadow-md active:translate-y-0"
         >
+          <Plus className="h-4 w-4" />
           New assignment
         </Link>
       </div>
@@ -135,30 +137,29 @@ export default function TeacherAssignmentsPage() {
                   </Td>
                   <Td>{formatDeadline(a.deadline)}</Td>
                   <Td>
-                    <div className="flex flex-wrap gap-2.5">
-                      <Link
+                    <div className="flex items-center gap-1">
+                      <IconLink
                         href={`/teacher/assignments/${a.id}/submissions`}
-                        className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
-                      >
-                        Submissions
-                      </Link>
-                      <Link
+                        icon={ClipboardList}
+                        label="View submissions"
+                      />
+                      <IconLink
                         href={`/teacher/assignments/${a.id}/edit`}
-                        className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
-                      >
-                        Edit
-                      </Link>
-                      <Button
-                        size="md"
-                        variant="secondary"
-                        isLoading={busyId === a.id}
+                        icon={Pencil}
+                        label="Edit assignment"
+                      />
+                      <IconButton
+                        icon={a.status === "Published" ? EyeOff : Eye}
+                        label={a.status === "Published" ? "Unpublish" : "Publish"}
+                        disabled={busyId === a.id}
                         onClick={() => handleToggleStatus(a)}
-                      >
-                        {a.status === "Published" ? "Unpublish" : "Publish"}
-                      </Button>
-                      <Button size="md" variant="danger" onClick={() => handleDelete(a)}>
-                        Delete
-                      </Button>
+                      />
+                      <IconButton
+                        icon={Trash2}
+                        label="Delete assignment"
+                        tone="danger"
+                        onClick={() => handleDelete(a)}
+                      />
                     </div>
                   </Td>
                 </tr>

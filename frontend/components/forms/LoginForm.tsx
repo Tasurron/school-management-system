@@ -62,7 +62,7 @@ export function LoginForm() {
         error={errors.password?.message}
         {...register("password")}
       />
-      <Button type="submit" variant="secondary" isLoading={isSubmitting} className="mt-4 w-full">
+      <Button type="submit" variant="primary" isLoading={isSubmitting} className="mt-4 self-center">
         {isSubmitting ? "Signing in..." : "Login"}
       </Button>
     </form>

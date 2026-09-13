@@ -114,7 +114,7 @@ export function RegisterForm() {
           </Select>
         )}
       </div>
-      <Button type="submit" variant="secondary" isLoading={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" variant="primary" isLoading={isSubmitting} className="mt-2 self-center">
         {isSubmitting ? "Creating account..." : "Create account"}
       </Button>
     </form>

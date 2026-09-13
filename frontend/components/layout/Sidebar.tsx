@@ -59,12 +59,14 @@ export function Sidebar({ role, className = "", onNavigate }: SidebarProps) {
             key={link.href}
             href={link.href}
             onClick={onNavigate}
-            className={`flex items-center gap-3 border-b border-navy-900 px-5 py-3 text-sm font-medium transition-colors duration-200 ${
-              isActive ? "bg-navy-850 text-primary-500" : "text-slate-300 hover:text-white"
+            className={`flex items-center gap-3 border-b border-navy-900 px-5 py-3 text-sm font-medium transition-all duration-200 ${
+              isActive
+                ? "bg-navy-850 text-primary-500"
+                : "text-slate-300 hover:pl-6 hover:text-white"
             }`}
           >
             <Icon
-              className={`h-[18px] w-[18px] shrink-0 ${
+              className={`h-[18px] w-[18px] shrink-0 transition-transform duration-200 ${
                 isActive ? "text-primary-500" : "text-primary-400"
               }`}
             />

@@ -58,16 +58,16 @@ function TopNav() {
           <GraduationCap className="h-6 w-6 text-primary-500" />
           School Management System
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link
             href="/login"
-            className="rounded px-4 py-2 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:text-primary-600"
+            className="rounded-full px-4 py-1.5 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:text-primary-600"
           >
             Login
           </Link>
           <Link
             href="/register"
-            className="rounded bg-primary-500 px-4 py-2.5 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-navy-800 hover:text-white"
+            className="rounded-full bg-primary-500 px-4 py-1.5 text-sm font-semibold text-navy-900 transition-all duration-200 hover:bg-navy-800 hover:text-white hover:shadow-md"
           >
             Register
           </Link>
@@ -79,26 +79,33 @@ function TopNav() {
 
 function Hero() {
   return (
-    <section className="bg-[#f0f2f5] px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mx-auto max-w-3xl fade-in text-center">
-        <h1 className="text-3xl font-bold leading-tight text-navy-800 sm:text-5xl">
-          Assignments, submissions, and grading —
-          <span className="text-primary-600"> all in one place</span>
+    <section className="bg-[#f5f5f5] px-4 py-16 sm:px-6 sm:py-20">
+      <div className="mx-auto max-w-3xl text-center">
+        <h1 className="fade-in text-3xl font-bold leading-tight text-navy-800 sm:text-5xl">
+          Assignments, submissions,
+          <br />
+          and grading — <span className="text-primary-500">all in one place</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base text-slate-500 sm:text-lg">
+        <p
+          className="fade-in mx-auto mt-5 max-w-2xl text-base text-slate-500 sm:text-lg"
+          style={{ animationDelay: "80ms", animationFillMode: "backwards" }}
+        >
           A simple, role-based system for schools and colleges. Teachers create and grade
           assignments, students submit before the deadline, and admins keep everything organized.
         </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div
+          className="fade-in mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          style={{ animationDelay: "160ms", animationFillMode: "backwards" }}
+        >
           <Link
             href="/register"
-            className="w-full rounded bg-primary-500 px-8 py-3 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-navy-800 hover:text-white sm:w-auto"
+            className="w-full rounded-full bg-primary-500 px-6 py-2.5 text-sm font-semibold text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-navy-800 hover:text-white hover:shadow-md sm:w-auto"
           >
             Get started
           </Link>
           <Link
             href="/login"
-            className="w-full rounded border border-navy-800/20 px-8 py-3 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:bg-white sm:w-auto"
+            className="w-full rounded-full border border-navy-800/20 px-6 py-2.5 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:bg-white sm:w-auto"
           >
             Sign in
           </Link>
@@ -149,9 +156,9 @@ function Features() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded border border-slate-100 bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-lg"
+              className="group rounded border border-slate-100 bg-white p-6 shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-700 transition-transform duration-200 group-hover:scale-110">
                 <feature.icon className="h-6 w-6" />
               </div>
               <h3 className="font-semibold text-navy-800">{feature.title}</h3>
@@ -184,7 +191,7 @@ const ROLES = [
 
 function RoleHighlights() {
   return (
-    <section className="bg-[#f0f2f5] px-4 py-16 sm:px-6 sm:py-24">
+    <section className="bg-[#f5f5f5] px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-navy-800 sm:text-3xl">Built for every role</h2>
@@ -194,8 +201,11 @@ function RoleHighlights() {
         </div>
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {ROLES.map((role) => (
-            <div key={role.title} className="rounded bg-white p-8 text-center shadow-card">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-navy-800 text-primary-500">
+            <div
+              key={role.title}
+              className="group rounded bg-white p-8 text-center shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-navy-800 text-white transition-transform duration-200 group-hover:scale-110">
                 <role.icon className="h-7 w-7" />
               </div>
               <h3 className="text-lg font-bold text-navy-800">{role.title}</h3>
@@ -210,13 +220,15 @@ function RoleHighlights() {
 
 function Footer() {
   return (
-    <footer className="bg-navy-900 px-4 py-8 sm:px-6">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-sm text-navy-200 sm:flex-row">
-        <span className="flex items-center gap-2 font-medium text-white">
-          <GraduationCap className="h-5 w-5 text-primary-500" />
+    <footer className="bg-navy-900 px-4 py-10 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+        <span className="flex items-center gap-2 text-lg font-bold text-white">
+          <GraduationCap className="h-6 w-6 text-primary-500" />
           School Management System
         </span>
-        <p>&copy; {new Date().getFullYear()} School Management System. All rights reserved.</p>
+        <p className="text-sm text-slate-300">
+          &copy; {new Date().getFullYear()} School Management System. All rights reserved.
+        </p>
       </div>
     </footer>
   );

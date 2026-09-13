@@ -32,7 +32,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <p className="text-sm font-medium text-slate-900">{user?.fullName}</p>
           <p className="text-xs text-slate-500">{user?.role}</p>
         </div>
-        <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-navy-800 text-sm font-semibold text-primary-500 sm:flex">
+        <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-navy-800 text-sm font-semibold text-white sm:flex">
           {user?.fullName?.charAt(0).toUpperCase()}
         </div>
         <Button variant="secondary" size="sm" onClick={logout}>

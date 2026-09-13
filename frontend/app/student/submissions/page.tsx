@@ -1,9 +1,10 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import Link from "next/link";
+import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
+import { IconLink } from "@/components/ui/IconLink";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
@@ -69,12 +70,11 @@ export default function StudentSubmissionsPage() {
                   <Td>{s.feedback || "-"}</Td>
                   <Td>{new Date(s.submittedAt).toLocaleString()}</Td>
                   <Td>
-                    <Link
+                    <IconLink
                       href={`/student/assignments/${s.assignmentId}`}
-                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50"
-                    >
-                      View
-                    </Link>
+                      icon={Eye}
+                      label="View assignment"
+                    />
                   </Td>
                 </tr>
               ))}
