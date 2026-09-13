@@ -2,10 +2,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using MockQueryable;
+using MockQueryable.Moq;
 using Moq;
 using SchoolMS.Business.Common;
 using SchoolMS.Business.DTOs.Auth;
 using SchoolMS.Business.Exceptions;
+using SchoolMS.Business.Interfaces;
 using SchoolMS.Business.Services;
 using SchoolMS.Data.Entities;
 using SchoolMS.Data.Enums;
@@ -19,6 +22,7 @@ public class AuthServiceTests
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly Mock<IClassRepository> _classRepositoryMock = new();
     private readonly Mock<IPasswordHasher<User>> _passwordHasherMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
     private readonly JwtSettings _jwtSettings = new()
     {
         Key = "UnitTestOnlySecretKeyThatIsLongEnough123!",
@@ -33,7 +37,14 @@ public class AuthServiceTests
         _passwordHasherMock
             .Setup(h => h.HashPassword(It.IsAny<User>(), It.IsAny<string>()))
             .Returns("hashed-password");
-        return new AuthService(_userRepositoryMock.Object, _classRepositoryMock.Object, _passwordHasherMock.Object, options);
+        // Default: no admins to notify on self-registration.
+        _userRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<User>().BuildMock());
+        return new AuthService(
+            _userRepositoryMock.Object,
+            _classRepositoryMock.Object,
+            _passwordHasherMock.Object,
+            _notificationServiceMock.Object,
+            options);
     }
 
     private static User MakeUser(UserRole role, bool isActive = true, int? classId = null) => new()

@@ -3,8 +3,10 @@ using MockQueryable.Moq;
 using Moq;
 using SchoolMS.Business.DTOs.Subjects;
 using SchoolMS.Business.Exceptions;
+using SchoolMS.Business.Interfaces;
 using SchoolMS.Business.Services;
 using SchoolMS.Data.Entities;
+using SchoolMS.Data.Enums;
 using SchoolMS.Data.Repositories.Interfaces;
 using Xunit;
 
@@ -15,9 +17,21 @@ public class SubjectServiceTests
     private readonly Mock<ISubjectRepository> _subjectRepositoryMock = new();
     private readonly Mock<ITeacherSubjectClassRepository> _teacherSubjectClassRepositoryMock = new();
     private readonly Mock<IAssignmentRepository> _assignmentRepositoryMock = new();
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
 
-    private SubjectService CreateService() =>
-        new(_subjectRepositoryMock.Object, _teacherSubjectClassRepositoryMock.Object, _assignmentRepositoryMock.Object);
+    private const int CurrentAdminId = 900;
+
+    private SubjectService CreateService()
+    {
+        _userRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<User>().BuildMock());
+        return new(
+            _subjectRepositoryMock.Object,
+            _teacherSubjectClassRepositoryMock.Object,
+            _assignmentRepositoryMock.Object,
+            _userRepositoryMock.Object,
+            _notificationServiceMock.Object);
+    }
 
     [Fact]
     public async Task CreateAsync_WithInvalidGrade_ThrowsBusinessRuleException()
@@ -27,7 +41,7 @@ public class SubjectServiceTests
         var service = CreateService();
         var request = new SubjectRequest { Name = "Test Subject", ApplicableGrades = new List<int> { 7 } };
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(request));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(request, CurrentAdminId));
     }
 
     [Fact]
@@ -44,7 +58,7 @@ public class SubjectServiceTests
         var service = CreateService();
         var request = new SubjectRequest { Name = "Physics", ApplicableGrades = new List<int> { 9, 10, 11, 12 } };
 
-        var result = await service.CreateAsync(request);
+        var result = await service.CreateAsync(request, CurrentAdminId);
 
         Assert.NotNull(saved);
         Assert.Equal(4, saved!.Grades.Count);
@@ -65,7 +79,7 @@ public class SubjectServiceTests
         var service = CreateService();
         var request = new SubjectRequest { Name = "Physics", ApplicableGrades = new List<int> { 11, 12 } };
 
-        var result = await service.UpdateAsync(1, request);
+        var result = await service.UpdateAsync(1, request, CurrentAdminId);
 
         Assert.Equal(new[] { 11, 12 }, result.ApplicableGrades);
     }
@@ -79,6 +93,6 @@ public class SubjectServiceTests
         var service = CreateService();
         var request = new SubjectRequest { Name = "Physics", ApplicableGrades = new List<int>() };
 
-        await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(request));
+        await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(request, CurrentAdminId));
     }
 }

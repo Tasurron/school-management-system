@@ -4,6 +4,7 @@ using MockQueryable.Moq;
 using Moq;
 using SchoolMS.Business.DTOs.Users;
 using SchoolMS.Business.Exceptions;
+using SchoolMS.Business.Interfaces;
 using SchoolMS.Business.Services;
 using SchoolMS.Data.Entities;
 using SchoolMS.Data.Enums;
@@ -16,9 +17,15 @@ public class UserServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly Mock<IPasswordHasher<User>> _passwordHasherMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
 
-    private UserService CreateService() =>
-        new(_userRepositoryMock.Object, _passwordHasherMock.Object);
+    private static readonly User TestAdmin = new() { Id = 900, FullName = "Admin", Email = "admin@school.com", Role = UserRole.Admin };
+
+    private UserService CreateService()
+    {
+        _userRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestAdmin }.BuildMock());
+        return new(_userRepositoryMock.Object, _passwordHasherMock.Object, _notificationServiceMock.Object);
+    }
 
     [Fact]
     public async Task CreateAsync_WithDuplicateEmail_ThrowsConflictException()
@@ -35,7 +42,7 @@ public class UserServiceTests
             Role = "Teacher"
         };
 
-        await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(request));
+        await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(request, TestAdmin.Id));
 
         _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
     }
@@ -43,6 +50,10 @@ public class UserServiceTests
     [Fact]
     public async Task CreateAsync_HashesPasswordBeforeSaving()
     {
+        // Constructed first so the dynamic Query() setup below (which the service
+        // also relies on for the "notify other admins" lookup) is the one Moq keeps.
+        var service = CreateService();
+
         _userRepositoryMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
 
         User? savedUser = null;
@@ -60,7 +71,6 @@ public class UserServiceTests
             .Setup(r => r.Query())
             .Returns(() => savedUser == null ? Array.Empty<User>().BuildMock() : new[] { savedUser }.BuildMock());
 
-        var service = CreateService();
         var request = new CreateUserRequest
         {
             FullName = "Jane Teacher",
@@ -69,7 +79,7 @@ public class UserServiceTests
             Role = "Teacher"
         };
 
-        await service.CreateAsync(request);
+        await service.CreateAsync(request, TestAdmin.Id);
 
         Assert.NotNull(savedUser);
         Assert.Equal("this-is-a-hashed-value", savedUser!.PasswordHash);
@@ -83,7 +93,7 @@ public class UserServiceTests
         _userRepositoryMock.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(user);
 
         var service = CreateService();
-        await service.DeactivateAsync(3);
+        await service.DeactivateAsync(3, TestAdmin.Id);
 
         Assert.False(user.IsActive);
         _userRepositoryMock.Verify(r => r.Update(user), Times.Once);

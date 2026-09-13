@@ -36,7 +36,7 @@ public class TeacherAssignmentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateTeacherAssignmentRequest request)
     {
-        var result = await _teacherAssignmentService.CreateAsync(request);
+        var result = await _teacherAssignmentService.CreateAsync(request, User.GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -44,7 +44,7 @@ public class TeacherAssignmentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _teacherAssignmentService.DeleteAsync(id);
+        await _teacherAssignmentService.DeleteAsync(id, User.GetUserId());
         return NoContent();
     }
 }

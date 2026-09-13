@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<TeacherSubjectClass> TeacherSubjectClasses => Set<TeacherSubjectClass>();
     public DbSet<Assignment> Assignments => Set<Assignment>();
     public DbSet<Submission> Submissions => Set<Submission>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,5 +30,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new TeacherSubjectClassConfiguration());
         modelBuilder.ApplyConfiguration(new AssignmentConfiguration());
         modelBuilder.ApplyConfiguration(new SubmissionConfiguration());
+        modelBuilder.ApplyConfiguration(new NotificationConfiguration());
     }
 }

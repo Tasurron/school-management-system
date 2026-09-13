@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SchoolMS.Api.Extensions;
 using SchoolMS.Business.DTOs.Subjects;
 using SchoolMS.Business.Interfaces;
 
@@ -35,7 +36,7 @@ public class SubjectsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] SubjectRequest request)
     {
-        var result = await _subjectService.CreateAsync(request);
+        var result = await _subjectService.CreateAsync(request, User.GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -43,7 +44,7 @@ public class SubjectsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] SubjectRequest request)
     {
-        var result = await _subjectService.UpdateAsync(id, request);
+        var result = await _subjectService.UpdateAsync(id, request, User.GetUserId());
         return Ok(result);
     }
 
@@ -51,7 +52,7 @@ public class SubjectsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _subjectService.DeleteAsync(id);
+        await _subjectService.DeleteAsync(id, User.GetUserId());
         return NoContent();
     }
 }

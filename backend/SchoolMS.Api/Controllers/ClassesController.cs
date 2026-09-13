@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SchoolMS.Api.Extensions;
 using SchoolMS.Business.DTOs.Classes;
 using SchoolMS.Business.Interfaces;
 
@@ -37,7 +38,7 @@ public class ClassesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] ClassRequest request)
     {
-        var result = await _classService.CreateAsync(request);
+        var result = await _classService.CreateAsync(request, User.GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -45,7 +46,7 @@ public class ClassesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] ClassRequest request)
     {
-        var result = await _classService.UpdateAsync(id, request);
+        var result = await _classService.UpdateAsync(id, request, User.GetUserId());
         return Ok(result);
     }
 
@@ -53,7 +54,7 @@ public class ClassesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _classService.DeleteAsync(id);
+        await _classService.DeleteAsync(id, User.GetUserId());
         return NoContent();
     }
 }

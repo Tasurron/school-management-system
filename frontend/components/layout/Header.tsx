@@ -3,6 +3,7 @@
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -28,6 +29,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </span>
       </div>
       <div className="flex items-center gap-3">
+        {user && <NotificationBell role={user.role} />}
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium text-slate-900">{user?.fullName}</p>
           <p className="text-xs text-slate-500">{user?.role}</p>

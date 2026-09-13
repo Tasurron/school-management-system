@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SchoolMS.Business.Common;
@@ -10,6 +11,7 @@ using SchoolMS.Business.DTOs.Users;
 using SchoolMS.Business.Exceptions;
 using SchoolMS.Business.Interfaces;
 using SchoolMS.Data.Entities;
+using SchoolMS.Data.Enums;
 using SchoolMS.Data.Repositories.Interfaces;
 
 namespace SchoolMS.Business.Services;
@@ -19,17 +21,20 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IClassRepository _classRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly INotificationService _notificationService;
     private readonly JwtSettings _jwtSettings;
 
     public AuthService(
         IUserRepository userRepository,
         IClassRepository classRepository,
         IPasswordHasher<User> passwordHasher,
+        INotificationService notificationService,
         IOptions<JwtSettings> jwtOptions)
     {
         _userRepository = userRepository;
         _classRepository = classRepository;
         _passwordHasher = passwordHasher;
+        _notificationService = notificationService;
         _jwtSettings = jwtOptions.Value;
     }
 
@@ -112,6 +117,17 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
+
+        var adminIds = await _userRepository.Query()
+            .Where(u => u.Role == Data.Enums.UserRole.Admin && u.IsActive)
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        await _notificationService.NotifyUsersAsync(
+            adminIds,
+            NotificationType.NewUserRegistered,
+            "New user registered",
+            $"{user.FullName} registered as a {user.Role}.");
 
         var (token, expiresAt) = GenerateToken(user);
 

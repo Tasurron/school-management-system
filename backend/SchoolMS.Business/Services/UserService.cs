@@ -13,11 +13,16 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly INotificationService _notificationService;
 
-    public UserService(IUserRepository userRepository, IPasswordHasher<User> passwordHasher)
+    public UserService(
+        IUserRepository userRepository,
+        IPasswordHasher<User> passwordHasher,
+        INotificationService notificationService)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _notificationService = notificationService;
     }
 
     public async Task<List<UserResponseDto>> GetAllAsync(string? role, int? classId)
@@ -52,7 +57,7 @@ public class UserService : IUserService
         return MapToDto(user);
     }
 
-    public async Task<UserResponseDto> CreateAsync(CreateUserRequest request)
+    public async Task<UserResponseDto> CreateAsync(CreateUserRequest request, int currentAdminId)
     {
         var existing = await _userRepository.GetByEmailAsync(request.Email);
         if (existing != null)
@@ -79,10 +84,23 @@ public class UserService : IUserService
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
+        await _notificationService.NotifyUsersAsync(
+            new[] { user.Id },
+            NotificationType.UserAccountCreated,
+            "Account created",
+            "Your account has been created. You can now log in.");
+
+        var otherAdminIds = await OtherAdminIdsAsync(currentAdminId, user.Id);
+        await _notificationService.NotifyUsersAsync(
+            otherAdminIds,
+            NotificationType.UserAccountCreated,
+            "User created",
+            $"{user.FullName} ({user.Role}) was added by an admin.");
+
         return await GetByIdAsync(user.Id);
     }
 
-    public async Task<UserResponseDto> UpdateAsync(int id, UpdateUserRequest request)
+    public async Task<UserResponseDto> UpdateAsync(int id, UpdateUserRequest request, int currentAdminId)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -110,10 +128,23 @@ public class UserService : IUserService
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
 
+        await _notificationService.NotifyUsersAsync(
+            new[] { user.Id },
+            NotificationType.UserAccountUpdated,
+            "Account updated",
+            "Your account details were updated by an admin.");
+
+        var otherAdminIds = await OtherAdminIdsAsync(currentAdminId, user.Id);
+        await _notificationService.NotifyUsersAsync(
+            otherAdminIds,
+            NotificationType.UserAccountUpdated,
+            "User updated",
+            $"{user.FullName}'s account was updated by an admin.");
+
         return await GetByIdAsync(user.Id);
     }
 
-    public async Task DeactivateAsync(int id)
+    public async Task DeactivateAsync(int id, int currentAdminId)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -126,7 +157,29 @@ public class UserService : IUserService
 
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
+
+        await _notificationService.NotifyUsersAsync(
+            new[] { user.Id },
+            NotificationType.UserAccountDeactivated,
+            "Account deactivated",
+            "Your account has been deactivated by an admin.");
+
+        var otherAdminIds = await OtherAdminIdsAsync(currentAdminId, user.Id);
+        await _notificationService.NotifyUsersAsync(
+            otherAdminIds,
+            NotificationType.UserAccountDeactivated,
+            "User deactivated",
+            $"{user.FullName}'s account was deactivated by an admin.");
     }
+
+    // Excludes both the acting admin (so they don't get notified about their own
+    // action) and the user the action was performed on (who already gets their own,
+    // first-person notification above - relevant when that target user is itself an Admin).
+    private async Task<List<int>> OtherAdminIdsAsync(int currentAdminId, int excludeUserId) =>
+        await _userRepository.Query()
+            .Where(u => u.Role == UserRole.Admin && u.Id != currentAdminId && u.Id != excludeUserId && u.IsActive)
+            .Select(u => u.Id)
+            .ToListAsync();
 
     private static UserResponseDto MapToDto(User user) => new()
     {

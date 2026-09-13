@@ -13,15 +13,18 @@ public class SubmissionService : ISubmissionService
     private readonly ISubmissionRepository _submissionRepository;
     private readonly IAssignmentRepository _assignmentRepository;
     private readonly IUserRepository _userRepository;
+    private readonly INotificationService _notificationService;
 
     public SubmissionService(
         ISubmissionRepository submissionRepository,
         IAssignmentRepository assignmentRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        INotificationService notificationService)
     {
         _submissionRepository = submissionRepository;
         _assignmentRepository = assignmentRepository;
         _userRepository = userRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<List<SubmissionResponseDto>> GetAllAsync(
@@ -120,6 +123,13 @@ public class SubmissionService : ISubmissionService
         await _submissionRepository.AddAsync(submission);
         await _submissionRepository.SaveChangesAsync();
 
+        await _notificationService.NotifyUsersAsync(
+            new[] { assignment.TeacherId },
+            NotificationType.SubmissionReceived,
+            "New submission received",
+            $"{student.FullName} submitted '{assignment.Title}'.",
+            assignment.Id);
+
         var created = await BaseQuery().FirstAsync(s => s.Id == submission.Id);
         return MapToDto(created);
     }
@@ -128,6 +138,7 @@ public class SubmissionService : ISubmissionService
     {
         var submission = await _submissionRepository.Query()
             .Include(s => s.Assignment)
+            .Include(s => s.Student)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (submission == null)
@@ -156,6 +167,13 @@ public class SubmissionService : ISubmissionService
         _submissionRepository.Update(submission);
         await _submissionRepository.SaveChangesAsync();
 
+        await _notificationService.NotifyUsersAsync(
+            new[] { submission.Assignment.TeacherId },
+            NotificationType.SubmissionResubmitted,
+            "Submission updated",
+            $"{submission.Student.FullName} updated their submission for '{submission.Assignment.Title}'.",
+            submission.Assignment.Id);
+
         var updated = await BaseQuery().FirstAsync(s => s.Id == submission.Id);
         return MapToDto(updated);
     }
@@ -164,6 +182,7 @@ public class SubmissionService : ISubmissionService
     {
         var submission = await _submissionRepository.Query()
             .Include(s => s.Assignment)
+            .Include(s => s.Student)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (submission == null)
@@ -188,6 +207,13 @@ public class SubmissionService : ISubmissionService
 
         _submissionRepository.Update(submission);
         await _submissionRepository.SaveChangesAsync();
+
+        await _notificationService.NotifyUsersAsync(
+            new[] { submission.StudentId },
+            NotificationType.SubmissionGraded,
+            "Your assignment has been graded",
+            $"You scored {submission.Marks}/{submission.Assignment.MaxMarks} on '{submission.Assignment.Title}'.",
+            submission.Assignment.Id);
 
         var updated = await BaseQuery().FirstAsync(s => s.Id == submission.Id);
         return MapToDto(updated);

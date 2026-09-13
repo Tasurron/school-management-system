@@ -3,6 +3,7 @@ using SchoolMS.Business.DTOs.Classes;
 using SchoolMS.Business.Exceptions;
 using SchoolMS.Business.Interfaces;
 using SchoolMS.Data.Entities;
+using SchoolMS.Data.Enums;
 using SchoolMS.Data.Repositories.Interfaces;
 
 namespace SchoolMS.Business.Services;
@@ -15,15 +16,18 @@ public class ClassService : IClassService
     private readonly IClassRepository _classRepository;
     private readonly IUserRepository _userRepository;
     private readonly IAssignmentRepository _assignmentRepository;
+    private readonly INotificationService _notificationService;
 
     public ClassService(
         IClassRepository classRepository,
         IUserRepository userRepository,
-        IAssignmentRepository assignmentRepository)
+        IAssignmentRepository assignmentRepository,
+        INotificationService notificationService)
     {
         _classRepository = classRepository;
         _userRepository = userRepository;
         _assignmentRepository = assignmentRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<List<ClassResponseDto>> GetAllAsync()
@@ -43,7 +47,7 @@ public class ClassService : IClassService
         return MapToDto(classEntity);
     }
 
-    public async Task<ClassResponseDto> CreateAsync(ClassRequest request)
+    public async Task<ClassResponseDto> CreateAsync(ClassRequest request, int currentAdminId)
     {
         var section = ValidateAndNormalize(request);
 
@@ -63,10 +67,12 @@ public class ClassService : IClassService
         await _classRepository.AddAsync(classEntity);
         await _classRepository.SaveChangesAsync();
 
+        await NotifyOtherAdminsAsync(currentAdminId, $"{classEntity.Name} was created by an admin.");
+
         return MapToDto(classEntity);
     }
 
-    public async Task<ClassResponseDto> UpdateAsync(int id, ClassRequest request)
+    public async Task<ClassResponseDto> UpdateAsync(int id, ClassRequest request, int currentAdminId)
     {
         var classEntity = await _classRepository.GetByIdAsync(id);
         if (classEntity == null)
@@ -83,16 +89,19 @@ public class ClassService : IClassService
             throw new ConflictException($"Class {request.Grade} - Section {section} already exists.");
         }
 
+        var oldName = classEntity.Name;
         classEntity.Grade = request.Grade;
         classEntity.Section = section;
         classEntity.Name = BuildName(request.Grade, section);
         _classRepository.Update(classEntity);
         await _classRepository.SaveChangesAsync();
 
+        await NotifyOtherAdminsAsync(currentAdminId, $"{oldName} was updated to {classEntity.Name} by an admin.");
+
         return MapToDto(classEntity);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, int currentAdminId)
     {
         var classEntity = await _classRepository.GetByIdAsync(id);
         if (classEntity == null)
@@ -109,6 +118,18 @@ public class ClassService : IClassService
 
         _classRepository.Delete(classEntity);
         await _classRepository.SaveChangesAsync();
+
+        await NotifyOtherAdminsAsync(currentAdminId, $"{classEntity.Name} was deleted by an admin.");
+    }
+
+    private async Task NotifyOtherAdminsAsync(int currentAdminId, string message)
+    {
+        var otherAdminIds = await _userRepository.Query()
+            .Where(u => u.Role == UserRole.Admin && u.Id != currentAdminId && u.IsActive)
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        await _notificationService.NotifyUsersAsync(otherAdminIds, NotificationType.ClassChanged, "Class updated", message);
     }
 
     private static string ValidateAndNormalize(ClassRequest request)

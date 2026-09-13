@@ -31,6 +31,7 @@ builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ITeacherSubjectClassRepository, TeacherSubjectClassRepository>();
 builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
 builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // ---- Services ----
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -40,6 +41,7 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<ISubmissionService, SubmissionService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // ---- Password hashing (just the hasher, not full ASP.NET Core Identity) ----
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();

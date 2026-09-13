@@ -3,6 +3,7 @@ using MockQueryable;
 using Moq;
 using SchoolMS.Business.DTOs.Submissions;
 using SchoolMS.Business.Exceptions;
+using SchoolMS.Business.Interfaces;
 using SchoolMS.Business.Services;
 using SchoolMS.Data.Entities;
 using SchoolMS.Data.Enums;
@@ -16,6 +17,7 @@ public class SubmissionServiceTests
     private readonly Mock<ISubmissionRepository> _submissionRepositoryMock = new();
     private readonly Mock<IAssignmentRepository> _assignmentRepositoryMock = new();
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
 
     private static readonly Class TestClass = new() { Id = 10, Name = "Class 10-A" };
     private static readonly Subject TestSubject = new() { Id = 20, Name = "Mathematics" };
@@ -23,7 +25,7 @@ public class SubmissionServiceTests
     private static readonly User TestStudent = new() { Id = 40, FullName = "Student", Email = "s@school.com", Role = UserRole.Student, ClassId = TestClass.Id };
 
     private SubmissionService CreateService() =>
-        new(_submissionRepositoryMock.Object, _assignmentRepositoryMock.Object, _userRepositoryMock.Object);
+        new(_submissionRepositoryMock.Object, _assignmentRepositoryMock.Object, _userRepositoryMock.Object, _notificationServiceMock.Object);
 
     private static Assignment MakeAssignment(
         AssignmentStatus status = AssignmentStatus.Published,

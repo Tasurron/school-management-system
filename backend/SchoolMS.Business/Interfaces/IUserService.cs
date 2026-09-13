@@ -6,7 +6,7 @@ public interface IUserService
 {
     Task<List<UserResponseDto>> GetAllAsync(string? role, int? classId);
     Task<UserResponseDto> GetByIdAsync(int id);
-    Task<UserResponseDto> CreateAsync(CreateUserRequest request);
-    Task<UserResponseDto> UpdateAsync(int id, UpdateUserRequest request);
-    Task DeactivateAsync(int id);
+    Task<UserResponseDto> CreateAsync(CreateUserRequest request, int currentAdminId);
+    Task<UserResponseDto> UpdateAsync(int id, UpdateUserRequest request, int currentAdminId);
+    Task DeactivateAsync(int id, int currentAdminId);
 }

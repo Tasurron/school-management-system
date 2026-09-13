@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SchoolMS.Api.Extensions;
 using SchoolMS.Business.DTOs.Users;
 using SchoolMS.Business.Interfaces;
 
@@ -34,21 +35,21 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
-        var result = await _userService.CreateAsync(request);
+        var result = await _userService.CreateAsync(request, User.GetUserId());
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequest request)
     {
-        var result = await _userService.UpdateAsync(id, request);
+        var result = await _userService.UpdateAsync(id, request, User.GetUserId());
         return Ok(result);
     }
 
     [HttpPut("{id:int}/deactivate")]
     public async Task<IActionResult> Deactivate(int id)
     {
-        await _userService.DeactivateAsync(id);
+        await _userService.DeactivateAsync(id, User.GetUserId());
         return NoContent();
     }
 }

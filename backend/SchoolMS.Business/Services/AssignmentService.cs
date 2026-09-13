@@ -35,6 +35,8 @@ public class AssignmentService : IAssignmentService
     private readonly IUserRepository _userRepository;
     private readonly IClassRepository _classRepository;
     private readonly ISubjectRepository _subjectRepository;
+    private readonly ISubmissionRepository _submissionRepository;
+    private readonly INotificationService _notificationService;
     private readonly string _attachmentsRoot;
 
     public AssignmentService(
@@ -42,12 +44,16 @@ public class AssignmentService : IAssignmentService
         IUserRepository userRepository,
         IClassRepository classRepository,
         ISubjectRepository subjectRepository,
+        ISubmissionRepository submissionRepository,
+        INotificationService notificationService,
         IWebHostEnvironment environment)
     {
         _assignmentRepository = assignmentRepository;
         _userRepository = userRepository;
         _classRepository = classRepository;
         _subjectRepository = subjectRepository;
+        _submissionRepository = submissionRepository;
+        _notificationService = notificationService;
         _attachmentsRoot = Path.Combine(environment.ContentRootPath, "uploads", "assignments");
         Directory.CreateDirectory(_attachmentsRoot);
     }
@@ -166,6 +172,11 @@ public class AssignmentService : IAssignmentService
         await _assignmentRepository.AddAsync(assignment);
         await _assignmentRepository.SaveChangesAsync();
 
+        if (assignment.Status == AssignmentStatus.Published)
+        {
+            await NotifyClassOfPublishedAssignmentAsync(assignment, classEntity.Name);
+        }
+
         var created = await BaseQuery().FirstAsync(a => a.Id == assignment.Id);
         return MapToDto(created);
     }
@@ -196,6 +207,9 @@ public class AssignmentService : IAssignmentService
         var classEntity = await FindOrCreateClassAsync(request.ClassGrade, request.ClassSection);
         await EnsureSubjectValidForGradeAsync(request.SubjectId, classEntity.Grade);
 
+        var oldStatus = assignment.Status;
+        var oldDeadline = assignment.Deadline;
+
         assignment.Title = request.Title;
         assignment.Description = request.Description;
         assignment.Deadline = request.Deadline;
@@ -222,6 +236,27 @@ public class AssignmentService : IAssignmentService
         _assignmentRepository.Update(assignment);
         await _assignmentRepository.SaveChangesAsync();
 
+        var wasJustPublished = oldStatus != AssignmentStatus.Published && assignment.Status == AssignmentStatus.Published;
+        var deadlineChangedWhilePublished = !wasJustPublished
+            && oldStatus == AssignmentStatus.Published
+            && assignment.Status == AssignmentStatus.Published
+            && oldDeadline != assignment.Deadline;
+
+        if (wasJustPublished)
+        {
+            await NotifyClassOfPublishedAssignmentAsync(assignment, classEntity.Name);
+        }
+        else if (deadlineChangedWhilePublished)
+        {
+            var studentIds = await StudentIdsInClassAsync(assignment.ClassId);
+            await _notificationService.NotifyUsersAsync(
+                studentIds,
+                NotificationType.AssignmentDeadlineChanged,
+                "Assignment deadline changed",
+                $"The deadline for '{assignment.Title}' is now {assignment.Deadline:MMM d, yyyy h:mm tt} UTC.",
+                assignment.Id);
+        }
+
         var updated = await BaseQuery().FirstAsync(a => a.Id == assignment.Id);
         return MapToDto(updated);
     }
@@ -239,11 +274,43 @@ public class AssignmentService : IAssignmentService
             throw new ForbiddenException("You can only delete assignments you own.");
         }
 
+        var affectedStudentIds = await _submissionRepository.Query()
+            .Where(s => s.AssignmentId == id)
+            .Select(s => s.StudentId)
+            .Distinct()
+            .ToListAsync();
+
         DeleteAttachmentFile(assignment);
 
         // Submissions cascade-delete via the FK configuration.
         _assignmentRepository.Delete(assignment);
         await _assignmentRepository.SaveChangesAsync();
+
+        if (affectedStudentIds.Count > 0)
+        {
+            await _notificationService.NotifyUsersAsync(
+                affectedStudentIds,
+                NotificationType.AssignmentDeleted,
+                "Assignment removed",
+                $"'{assignment.Title}' has been removed by the teacher.");
+        }
+    }
+
+    private async Task<List<int>> StudentIdsInClassAsync(int classId) =>
+        await _userRepository.Query()
+            .Where(u => u.Role == UserRole.Student && u.ClassId == classId && u.IsActive)
+            .Select(u => u.Id)
+            .ToListAsync();
+
+    private async Task NotifyClassOfPublishedAssignmentAsync(Assignment assignment, string className)
+    {
+        var studentIds = await StudentIdsInClassAsync(assignment.ClassId);
+        await _notificationService.NotifyUsersAsync(
+            studentIds,
+            NotificationType.AssignmentPublished,
+            "New assignment published",
+            $"'{assignment.Title}' has been published for {className}.",
+            assignment.Id);
     }
 
     // Looks up the Class row for a given Grade+Section, creating it on the fly if a

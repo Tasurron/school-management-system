@@ -4,6 +4,7 @@ using MockQueryable;
 using Moq;
 using SchoolMS.Business.DTOs.Assignments;
 using SchoolMS.Business.Exceptions;
+using SchoolMS.Business.Interfaces;
 using SchoolMS.Business.Services;
 using SchoolMS.Data.Entities;
 using SchoolMS.Data.Enums;
@@ -18,6 +19,8 @@ public class AssignmentServiceTests
     private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly Mock<IClassRepository> _classRepositoryMock = new();
     private readonly Mock<ISubjectRepository> _subjectRepositoryMock = new();
+    private readonly Mock<ISubmissionRepository> _submissionRepositoryMock = new();
+    private readonly Mock<INotificationService> _notificationServiceMock = new();
     private readonly Mock<IWebHostEnvironment> _environmentMock = new();
 
     private static readonly Class TestClass = new() { Id = 10, Grade = 10, Section = "A", Name = "Class 10 - Section A" };
@@ -36,11 +39,16 @@ public class AssignmentServiceTests
         // and TestSubject is already valid for TestClass.Grade.
         _classRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestClass }.BuildMock());
         _subjectRepositoryMock.Setup(r => r.Query()).Returns(new[] { TestSubject }.BuildMock());
+        // Default: no students in the class, so publish/deadline-change notifications are no-ops.
+        _userRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<User>().BuildMock());
+        _submissionRepositoryMock.Setup(r => r.Query()).Returns(Array.Empty<Submission>().BuildMock());
         return new(
             _assignmentRepositoryMock.Object,
             _userRepositoryMock.Object,
             _classRepositoryMock.Object,
             _subjectRepositoryMock.Object,
+            _submissionRepositoryMock.Object,
+            _notificationServiceMock.Object,
             _environmentMock.Object);
     }
 
