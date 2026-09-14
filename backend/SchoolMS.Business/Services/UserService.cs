@@ -72,7 +72,7 @@ public class UserService : IUserService
 
         var user = new User
         {
-            FullName = request.FullName,
+            FullName = request.FullName.Trim(),
             Email = request.Email,
             Role = role,
             ClassId = role == UserRole.Student ? request.ClassId : null,
@@ -117,7 +117,7 @@ public class UserService : IUserService
             }
         }
 
-        user.FullName = request.FullName;
+        user.FullName = request.FullName.Trim();
         user.Email = request.Email;
         if (user.Role == UserRole.Student)
         {

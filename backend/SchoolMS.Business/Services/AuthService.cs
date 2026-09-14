@@ -106,7 +106,7 @@ public class AuthService : IAuthService
 
         var user = new User
         {
-            FullName = request.FullName,
+            FullName = request.FullName.Trim(),
             Email = request.Email,
             Role = role,
             ClassId = classId,
