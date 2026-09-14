@@ -12,6 +12,8 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { ClassForm } from "@/components/forms/ClassForm";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as classService from "@/services/classService";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { SchoolClass } from "@/types/class";
 
 export default function ClassesPage() {
@@ -37,6 +39,8 @@ export default function ClassesPage() {
   useEffect(() => {
     queueMicrotask(loadData);
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   function openCreateModal() {
     setSelectedClass(undefined);
@@ -100,7 +104,11 @@ export default function ClassesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {classes.map((c) => (
-                <tr key={c.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={c.id}
+                  id={rowId("class", c.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>{c.name}</Td>
                   <Td>
                     <div className="flex items-center gap-1">

@@ -15,6 +15,8 @@ import * as teacherAssignmentService from "@/services/teacherAssignmentService";
 import * as userService from "@/services/userService";
 import * as classService from "@/services/classService";
 import * as subjectService from "@/services/subjectService";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { TeacherAssignment } from "@/types/teacherAssignment";
 import { User } from "@/types/user";
 import { SchoolClass } from "@/types/class";
@@ -54,6 +56,8 @@ export default function TeacherAssignmentsPage() {
   useEffect(() => {
     queueMicrotask(loadData);
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   async function handleFormSuccess() {
     setModalOpen(false);
@@ -113,7 +117,11 @@ export default function TeacherAssignmentsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {assignments.map((a) => (
-                <tr key={a.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={a.id}
+                  id={rowId("teacher-assignment", a.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>{a.teacherName}</Td>
                   <Td>{a.subjectName}</Td>
                   <Td>{a.className}</Td>

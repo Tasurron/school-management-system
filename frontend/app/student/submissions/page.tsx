@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as submissionService from "@/services/submissionService";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { Submission } from "@/types/submission";
 
 export default function StudentSubmissionsPage() {
@@ -30,6 +32,8 @@ export default function StudentSubmissionsPage() {
     }
     loadData();
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,7 +65,11 @@ export default function StudentSubmissionsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {submissions.map((s) => (
-                <tr key={s.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={s.id}
+                  id={rowId("submission", s.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>{s.assignmentTitle}</Td>
                   <Td>
                     <Badge tone={s.status === "Graded" ? "green" : "yellow"}>{s.status}</Badge>

@@ -10,6 +10,8 @@ import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
 import * as submissionService from "@/services/submissionService";
 import { formatDeadline } from "@/lib/formatDateTime";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 
@@ -36,6 +38,8 @@ export default function AdminOverviewPage() {
     }
     loadData();
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,7 +76,11 @@ export default function AdminOverviewPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {assignments.map((a) => (
-                      <tr key={a.id} className="transition-colors duration-200 hover:bg-slate-50">
+                      <tr
+                        key={a.id}
+                        id={rowId("assignment", a.id)}
+                        className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                      >
                         <Td>{a.title}</Td>
                         <Td>{a.className}</Td>
                         <Td>{a.subjectName}</Td>
@@ -110,7 +118,11 @@ export default function AdminOverviewPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {submissions.map((s) => (
-                      <tr key={s.id} className="transition-colors duration-200 hover:bg-slate-50">
+                      <tr
+                        key={s.id}
+                        id={rowId("submission", s.id)}
+                        className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                      >
                         <Td>{s.assignmentTitle}</Td>
                         <Td>{s.studentName}</Td>
                         <Td>

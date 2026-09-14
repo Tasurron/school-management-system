@@ -14,6 +14,8 @@ import { getErrorMessage } from "@/services/axiosInstance";
 import * as assignmentService from "@/services/assignmentService";
 import { getSubjectAbbreviation } from "@/lib/subjectAbbreviations";
 import { formatDeadline } from "@/lib/formatDateTime";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { Assignment } from "@/types/assignment";
 
 export default function TeacherAssignmentsPage() {
@@ -38,6 +40,8 @@ export default function TeacherAssignmentsPage() {
   useEffect(() => {
     queueMicrotask(loadData);
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   async function handleToggleStatus(assignment: Assignment) {
     setActionError(null);
@@ -114,7 +118,11 @@ export default function TeacherAssignmentsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {assignments.map((a) => (
-                <tr key={a.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={a.id}
+                  id={rowId("assignment", a.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>
                     <span className="inline-flex items-center gap-1.5">
                       {a.title}

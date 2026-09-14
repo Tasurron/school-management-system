@@ -20,7 +20,7 @@ interface NavLink {
   icon: LucideIcon;
 }
 
-const NAV_LINKS: Record<Role, NavLink[]> = {
+export const NAV_LINKS: Record<Role, NavLink[]> = {
   Admin: [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/users", label: "Users", icon: Users },

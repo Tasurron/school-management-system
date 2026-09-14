@@ -12,6 +12,8 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { SubjectForm } from "@/components/forms/SubjectForm";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as subjectService from "@/services/subjectService";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { Subject } from "@/types/subject";
 
 export default function SubjectsPage() {
@@ -37,6 +39,8 @@ export default function SubjectsPage() {
   useEffect(() => {
     queueMicrotask(loadData);
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   function openCreateModal() {
     setSelectedSubject(undefined);
@@ -103,7 +107,11 @@ export default function SubjectsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {subjects.map((s) => (
-                <tr key={s.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={s.id}
+                  id={rowId("subject", s.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>{s.name}</Td>
                   <Td>{s.code ?? "-"}</Td>
                   <Td>

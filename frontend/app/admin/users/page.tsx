@@ -14,6 +14,8 @@ import { UserForm } from "@/components/forms/UserForm";
 import { getErrorMessage } from "@/services/axiosInstance";
 import * as userService from "@/services/userService";
 import * as classService from "@/services/classService";
+import { useHighlightRow } from "@/hooks/useHighlightRow";
+import { rowId } from "@/lib/globalSearch";
 import { User } from "@/types/user";
 import { SchoolClass } from "@/types/class";
 
@@ -46,6 +48,8 @@ export default function UsersPage() {
   useEffect(() => {
     queueMicrotask(loadData);
   }, []);
+
+  useHighlightRow(!isLoading && !error);
 
   function openCreateModal() {
     setSelectedUser(undefined);
@@ -124,7 +128,11 @@ export default function UsersPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {users.map((u) => (
-                <tr key={u.id} className="transition-colors duration-200 hover:bg-slate-50">
+                <tr
+                  key={u.id}
+                  id={rowId("user", u.id)}
+                  className="scroll-mt-24 transition-colors duration-200 hover:bg-slate-50"
+                >
                   <Td>{u.fullName}</Td>
                   <Td>{u.email}</Td>
                   <Td>{u.role}</Td>
