@@ -15,5 +15,6 @@ public enum NotificationType
     UserAccountDeactivated = 10,
     NewUserRegistered = 11,
     ClassChanged = 12,
-    SubjectChanged = 13
+    SubjectChanged = 13,
+    UserAccountReactivated = 14
 }

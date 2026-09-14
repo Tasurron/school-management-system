@@ -52,4 +52,11 @@ public class UsersController : ControllerBase
         await _userService.DeactivateAsync(id, User.GetUserId());
         return NoContent();
     }
+
+    [HttpPut("{id:int}/activate")]
+    public async Task<IActionResult> Activate(int id)
+    {
+        await _userService.ActivateAsync(id, User.GetUserId());
+        return NoContent();
+    }
 }

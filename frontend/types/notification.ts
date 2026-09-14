@@ -10,6 +10,7 @@ export type NotificationType =
   | "UserAccountCreated"
   | "UserAccountUpdated"
   | "UserAccountDeactivated"
+  | "UserAccountReactivated"
   | "NewUserRegistered"
   | "ClassChanged"
   | "SubjectChanged";

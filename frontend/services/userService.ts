@@ -19,3 +19,7 @@ export async function updateUser(id: number, input: UpdateUserInput): Promise<Us
 export async function deactivateUser(id: number): Promise<void> {
   await axiosInstance.put(`/users/${id}/deactivate`);
 }
+
+export async function activateUser(id: number): Promise<void> {
+  await axiosInstance.put(`/users/${id}/activate`);
+}

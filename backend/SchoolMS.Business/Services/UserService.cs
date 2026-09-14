@@ -172,6 +172,34 @@ public class UserService : IUserService
             $"{user.FullName}'s account was deactivated by an admin.");
     }
 
+    public async Task ActivateAsync(int id, int currentAdminId)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            throw new NotFoundException($"User with id {id} was not found.");
+        }
+
+        user.IsActive = true;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
+
+        await _notificationService.NotifyUsersAsync(
+            new[] { user.Id },
+            NotificationType.UserAccountReactivated,
+            "Account reactivated",
+            "Your account has been reactivated by an admin. You can now log in.");
+
+        var otherAdminIds = await OtherAdminIdsAsync(currentAdminId, user.Id);
+        await _notificationService.NotifyUsersAsync(
+            otherAdminIds,
+            NotificationType.UserAccountReactivated,
+            "User reactivated",
+            $"{user.FullName}'s account was reactivated by an admin.");
+    }
+
     // Excludes both the acting admin (so they don't get notified about their own
     // action) and the user the action was performed on (who already gets their own,
     // first-person notification above - relevant when that target user is itself an Admin).

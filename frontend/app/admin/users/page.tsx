@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { Plus, Pencil, UserX } from "lucide-react";
+import { Plus, Pencil, UserX, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
@@ -78,6 +78,17 @@ export default function UsersPage() {
     }
   }
 
+  async function handleActivate(user: User) {
+    setActionError(null);
+    if (!confirm(`Reactivate ${user.fullName}?`)) return;
+    try {
+      await userService.activateUser(user.id);
+      await loadData();
+    } catch (err) {
+      setActionError(getErrorMessage(err));
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <BackButton />
@@ -126,12 +137,19 @@ export default function UsersPage() {
                   <Td>
                     <div className="flex items-center gap-1">
                       <IconButton icon={Pencil} label="Edit user" onClick={() => openEditModal(u)} />
-                      {u.isActive !== false && (
+                      {u.isActive !== false ? (
                         <IconButton
                           icon={UserX}
                           label="Deactivate user"
                           tone="danger"
                           onClick={() => handleDeactivate(u)}
+                        />
+                      ) : (
+                        <IconButton
+                          icon={UserCheck}
+                          label="Reactivate user"
+                          tone="primary"
+                          onClick={() => handleActivate(u)}
                         />
                       )}
                     </div>

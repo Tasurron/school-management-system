@@ -9,4 +9,5 @@ public interface IUserService
     Task<UserResponseDto> CreateAsync(CreateUserRequest request, int currentAdminId);
     Task<UserResponseDto> UpdateAsync(int id, UpdateUserRequest request, int currentAdminId);
     Task DeactivateAsync(int id, int currentAdminId);
+    Task ActivateAsync(int id, int currentAdminId);
 }

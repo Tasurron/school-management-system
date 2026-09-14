@@ -30,6 +30,7 @@ function getNotificationRoute(notification: AppNotification, role: Role): string
     case "UserAccountCreated":
     case "UserAccountUpdated":
     case "UserAccountDeactivated":
+    case "UserAccountReactivated":
     case "NewUserRegistered":
       return role === "Admin" ? "/admin/users" : null;
     case "ClassChanged":
