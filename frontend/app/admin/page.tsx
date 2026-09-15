@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="table-scroll rounded border border-slate-100 bg-white shadow-card">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-navy-50">
+                <thead className="bg-navy-100">
                   <tr>
                     <Th>Name</Th>
                     <Th>Email</Th>

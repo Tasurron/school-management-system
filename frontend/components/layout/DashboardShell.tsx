@@ -35,7 +35,7 @@ export function DashboardShell({ role, children }: DashboardShellProps) {
           </div>
         )}
 
-        <main className="flex-1 overflow-x-hidden p-4 sm:p-6">
+        <main className="flex-1 overflow-x-hidden bg-[#F5F6FB] p-4 sm:p-6">
           <div className="mx-auto max-w-6xl fade-in">{children}</div>
         </main>
       </div>
