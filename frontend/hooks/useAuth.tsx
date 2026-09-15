@@ -20,6 +20,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   register: (input: authService.RegisterInput) => Promise<AuthUser>;
+  updateProfile: (input: authService.UpdateMeInput) => Promise<AuthUser>;
   logout: () => void;
 }
 
@@ -98,6 +99,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response.user;
   }, []);
 
+  const updateProfile = useCallback(async (input: authService.UpdateMeInput) => {
+    const updated = await authService.updateMe(input);
+    const authUser: AuthUser = {
+      id: updated.id,
+      fullName: updated.fullName,
+      email: updated.email,
+      role: updated.role,
+      classId: updated.classId,
+    };
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
+    setUser(authUser);
+    return authUser;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
@@ -107,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

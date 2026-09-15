@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,6 +63,12 @@ export function LoginForm() {
         error={errors.password?.message}
         {...register("password")}
       />
+      <Link
+        href="/forgot-password"
+        className="self-end text-sm font-medium text-primary-600 hover:text-primary-700"
+      >
+        Recovery Password
+      </Link>
       <Button type="submit" variant="primary" isLoading={isSubmitting} className="mt-4 self-center">
         {isSubmitting ? "Signing in..." : "Login"}
       </Button>

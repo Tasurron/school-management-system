@@ -23,6 +23,7 @@ public class AuthServiceTests
     private readonly Mock<IClassRepository> _classRepositoryMock = new();
     private readonly Mock<IPasswordHasher<User>> _passwordHasherMock = new();
     private readonly Mock<INotificationService> _notificationServiceMock = new();
+    private readonly Mock<IEmailService> _emailServiceMock = new();
     private readonly JwtSettings _jwtSettings = new()
     {
         Key = "UnitTestOnlySecretKeyThatIsLongEnough123!",
@@ -44,6 +45,7 @@ public class AuthServiceTests
             _classRepositoryMock.Object,
             _passwordHasherMock.Object,
             _notificationServiceMock.Object,
+            _emailServiceMock.Object,
             options);
     }
 
@@ -298,5 +300,150 @@ public class AuthServiceTests
         var classIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == "classId");
         Assert.NotNull(classIdClaim);
         Assert.Equal("3", classIdClaim!.Value);
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithKnownEmail_SetsOtpAndSendsEmail()
+    {
+        var user = MakeUser(UserRole.Teacher);
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+        var service = CreateService();
+        await service.ForgotPasswordAsync(new ForgotPasswordRequest { Email = user.Email });
+
+        Assert.NotNull(user.PasswordResetToken);
+        Assert.Equal(6, user.PasswordResetToken!.Length);
+        Assert.NotNull(user.PasswordResetTokenExpiresAt);
+        Assert.True(user.PasswordResetTokenExpiresAt > DateTime.UtcNow);
+        _emailServiceMock.Verify(
+            e => e.SendEmailAsync(user.Email, It.IsAny<string>(), It.Is<string>(body => body.Contains(user.PasswordResetToken))),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithUnknownEmail_DoesNotSendEmail()
+    {
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+
+        var service = CreateService();
+        await service.ForgotPasswordAsync(new ForgotPasswordRequest { Email = "nobody@school.com" });
+
+        _emailServiceMock.Verify(
+            e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithValidOtp_UpdatesPasswordAndClearsToken()
+    {
+        var user = MakeUser(UserRole.Student);
+        user.PasswordResetToken = "123456";
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(5);
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+        var service = CreateService();
+        await service.ResetPasswordAsync(new ResetPasswordRequest
+        {
+            Email = user.Email,
+            Otp = "123456",
+            NewPassword = "newpassword1"
+        });
+
+        Assert.Equal("hashed-password", user.PasswordHash);
+        Assert.Null(user.PasswordResetToken);
+        Assert.Null(user.PasswordResetTokenExpiresAt);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithWrongOtp_ThrowsBusinessRuleException()
+    {
+        var user = MakeUser(UserRole.Student);
+        user.PasswordResetToken = "123456";
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(5);
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ResetPasswordAsync(new ResetPasswordRequest
+        {
+            Email = user.Email,
+            Otp = "000000",
+            NewPassword = "newpassword1"
+        }));
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithExpiredOtp_ThrowsBusinessRuleException()
+    {
+        var user = MakeUser(UserRole.Student);
+        user.PasswordResetToken = "123456";
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(-1);
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ResetPasswordAsync(new ResetPasswordRequest
+        {
+            Email = user.Email,
+            Otp = "123456",
+            NewPassword = "newpassword1"
+        }));
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithDeactivatedAccount_ThrowsBusinessRuleException()
+    {
+        var user = MakeUser(UserRole.Student, isActive: false);
+        user.PasswordResetToken = "123456";
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(5);
+        _userRepositoryMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ResetPasswordAsync(new ResetPasswordRequest
+        {
+            Email = user.Email,
+            Otp = "123456",
+            NewPassword = "newpassword1"
+        }));
+    }
+
+    [Fact]
+    public async Task UpdateMeAsync_WithNameOnly_UpdatesNameAndKeepsPassword()
+    {
+        var user = MakeUser(UserRole.Teacher);
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user);
+
+        var service = CreateService();
+        var result = await service.UpdateMeAsync(user.Id, new UpdateMeRequest { FullName = "  Updated Name  " });
+
+        Assert.Equal("Updated Name", result.FullName);
+        Assert.Equal("Updated Name", user.FullName);
+        Assert.Equal("hashed-password", user.PasswordHash);
+    }
+
+    [Fact]
+    public async Task UpdateMeAsync_WithNewPassword_UpdatesPasswordHash()
+    {
+        var user = MakeUser(UserRole.Student);
+        user.PasswordHash = "old-hash";
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user);
+
+        var service = CreateService();
+        await service.UpdateMeAsync(user.Id, new UpdateMeRequest { FullName = "Test User", NewPassword = "brandnewpassword" });
+
+        Assert.Equal("hashed-password", user.PasswordHash);
+        Assert.NotEqual("old-hash", user.PasswordHash);
+    }
+
+    [Fact]
+    public async Task UpdateMeAsync_WithUnknownUser_ThrowsNotFound()
+    {
+        _userRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((User?)null);
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            service.UpdateMeAsync(999, new UpdateMeRequest { FullName = "Anyone" }));
     }
 }

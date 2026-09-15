@@ -42,4 +42,31 @@ public class AuthController : ControllerBase
         var result = await _authService.GetMeAsync(User.GetUserId());
         return Ok(result);
     }
+
+
+    [HttpPut("me")]
+    [Authorize]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateMeRequest request)
+    {
+        var result = await _authService.UpdateMeAsync(User.GetUserId(), request);
+        return Ok(result);
+    }
+
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        await _authService.ForgotPasswordAsync(request);
+        return Ok(new { message = "If that email is registered, a reset code has been sent." });
+    }
+
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        await _authService.ResetPasswordAsync(request);
+        return Ok(new { message = "Password has been reset successfully." });
+    }
 }

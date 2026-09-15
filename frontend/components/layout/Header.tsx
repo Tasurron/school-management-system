@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { GlobalSearch } from "@/components/layout/GlobalSearch";
+import { UpdateProfileModal } from "@/components/layout/UpdateProfileModal";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -12,6 +14,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between bg-white px-4 shadow-sm sm:px-6">
@@ -32,17 +35,25 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center gap-3">
         {user && <GlobalSearch role={user.role} />}
         {user && <NotificationBell role={user.role} />}
-        <div className="hidden text-right sm:block">
-          <p className="text-sm font-medium text-slate-900">{user?.fullName}</p>
-          <p className="text-xs text-slate-500">{user?.role}</p>
-        </div>
-        <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-navy-800 text-sm font-semibold text-white sm:flex">
-          {user?.fullName?.trim().charAt(0).toUpperCase()}
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex items-center gap-3 rounded p-1 transition-colors duration-200 hover:bg-slate-100"
+          aria-label="Update profile"
+        >
+          <div className="hidden text-right sm:block">
+            <p className="text-sm font-medium text-slate-900">{user?.fullName}</p>
+            <p className="text-xs text-slate-500">{user?.role}</p>
+          </div>
+          <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-navy-800 text-sm font-semibold text-white sm:flex">
+            {user?.fullName?.trim().charAt(0).toUpperCase()}
+          </div>
+        </button>
         <Button variant="secondary" size="sm" onClick={logout}>
           Log out
         </Button>
       </div>
+      <UpdateProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
     </header>
   );
 }

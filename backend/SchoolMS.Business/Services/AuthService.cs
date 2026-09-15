@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +19,13 @@ namespace SchoolMS.Business.Services;
 
 public class AuthService : IAuthService
 {
+    private const int OtpExpiryMinutes = 10;
+
     private readonly IUserRepository _userRepository;
     private readonly IClassRepository _classRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
     private readonly JwtSettings _jwtSettings;
 
     public AuthService(
@@ -29,12 +33,14 @@ public class AuthService : IAuthService
         IClassRepository classRepository,
         IPasswordHasher<User> passwordHasher,
         INotificationService notificationService,
+        IEmailService emailService,
         IOptions<JwtSettings> jwtOptions)
     {
         _userRepository = userRepository;
         _classRepository = classRepository;
         _passwordHasher = passwordHasher;
         _notificationService = notificationService;
+        _emailService = emailService;
         _jwtSettings = jwtOptions.Value;
     }
 
@@ -153,6 +159,82 @@ public class AuthService : IAuthService
         {
             throw new NotFoundException("User not found.");
         }
+
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            ClassId = user.ClassId,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null || !user.IsActive)
+        {
+            // Don't reveal whether the email exists.
+            return;
+        }
+
+        var otp = RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
+        user.PasswordResetToken = otp;
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(OtpExpiryMinutes);
+
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
+
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Your SchoolMS Password Reset Code",
+            $"<p>Your password reset code is: <strong>{otp}</strong></p><p>This code expires in {OtpExpiryMinutes} minutes.</p>");
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null ||
+            !user.IsActive ||
+            user.PasswordResetToken == null ||
+            user.PasswordResetTokenExpiresAt == null ||
+            user.PasswordResetTokenExpiresAt < DateTime.UtcNow ||
+            user.PasswordResetToken != request.Otp)
+        {
+            throw new BusinessRuleException("Invalid or expired reset code.");
+        }
+
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiresAt = null;
+
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
+    }
+
+    public async Task<UserResponseDto> UpdateMeAsync(int currentUserId, UpdateMeRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(currentUserId);
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        user.FullName = request.FullName.Trim();
+
+        if (!string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        }
+
+        user.UpdatedAt = DateTime.UtcNow;
+
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
 
         return new UserResponseDto
         {

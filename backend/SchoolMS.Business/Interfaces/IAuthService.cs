@@ -8,4 +8,7 @@ public interface IAuthService
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<LoginResponse> RegisterAsync(RegisterRequest request);
     Task<UserResponseDto> GetMeAsync(int currentUserId);
+    Task ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task ResetPasswordAsync(ResetPasswordRequest request);
+    Task<UserResponseDto> UpdateMeAsync(int currentUserId, UpdateMeRequest request);
 }

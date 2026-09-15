@@ -40,6 +40,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .HasColumnType("timestamptz");
 
+        builder.Property(u => u.PasswordResetToken)
+            .HasMaxLength(200);
+
+        builder.Property(u => u.PasswordResetTokenExpiresAt)
+            .HasColumnType("timestamptz");
+
         // Student -> Class (optional). Restrict delete so removing a class doesn't cascade-delete users.
         builder.HasOne(u => u.Class)
             .WithMany()

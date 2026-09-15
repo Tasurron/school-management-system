@@ -11,13 +11,21 @@ export const registerSchema = z
     role: roleEnum,
     classId: z.number().optional().nullable(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-  .refine((data) => data.role !== "Student" || !!data.classId, {
-    message: "Class is required for students",
-    path: ["classId"],
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
+    if (data.role === "Student" && !data.classId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Class is required for students",
+        path: ["classId"],
+      });
+    }
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
