@@ -43,7 +43,7 @@ export default function NewAssignmentPage() {
       {error && <ErrorMessage message={error} />}
 
       {!isLoading && !error && (
-        <div className="max-w-xl rounded border border-slate-100 bg-white p-6 shadow-card">
+        <div className="max-w-3xl rounded border border-slate-100 bg-white p-6 shadow-card">
           <AssignmentForm
             subjects={subjects}
             onSuccess={() => router.push("/teacher/assignments")}
