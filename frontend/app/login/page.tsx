@@ -31,12 +31,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        <div className="mt-6 rounded border border-slate-200 bg-white p-4 text-xs text-slate-500">
-          <p className="mb-1 font-medium text-slate-700">Demo accounts</p>
-          <p>Admin: admin@school.com / Admin@123</p>
-          <p>Teacher: teacher1@school.com / Teacher@123</p>
-          <p>Student: student1@school.com / Student@123</p>
-        </div>
       </div>
     </div>
   );

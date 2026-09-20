@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
@@ -23,6 +23,14 @@ import { SchoolClass } from "@/types/class";
 import { Subject } from "@/types/subject";
 
 export default function TeacherAssignmentsPage() {
+  return (
+    <Suspense>
+      <TeacherAssignmentsPageContent />
+    </Suspense>
+  );
+}
+
+function TeacherAssignmentsPageContent() {
   const [assignments, setAssignments] = useState<TeacherAssignment[]>([]);
   const [teachers, setTeachers] = useState<User[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);

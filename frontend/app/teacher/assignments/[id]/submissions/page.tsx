@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Pencil, ClipboardCheck } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -18,6 +18,14 @@ import { Submission } from "@/types/submission";
 import { Assignment } from "@/types/assignment";
 
 export default function AssignmentSubmissionsPage() {
+  return (
+    <Suspense>
+      <AssignmentSubmissionsPageContent />
+    </Suspense>
+  );
+}
+
+function AssignmentSubmissionsPageContent() {
   const params = useParams<{ id: string }>();
   const assignmentId = Number(params.id);
 

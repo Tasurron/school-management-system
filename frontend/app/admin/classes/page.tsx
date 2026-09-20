@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
@@ -17,6 +17,14 @@ import { rowId } from "@/lib/globalSearch";
 import { SchoolClass } from "@/types/class";
 
 export default function ClassesPage() {
+  return (
+    <Suspense>
+      <ClassesPageContent />
+    </Suspense>
+  );
+}
+
+function ClassesPageContent() {
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

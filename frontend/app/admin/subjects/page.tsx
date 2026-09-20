@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
@@ -17,6 +17,14 @@ import { rowId } from "@/lib/globalSearch";
 import { Subject } from "@/types/subject";
 
 export default function SubjectsPage() {
+  return (
+    <Suspense>
+      <SubjectsPageContent />
+    </Suspense>
+  );
+}
+
+function SubjectsPageContent() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

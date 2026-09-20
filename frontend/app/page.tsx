@@ -12,6 +12,7 @@ import {
   Users,
   BookOpen,
   Search,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Spinner } from "@/components/ui/Spinner";
@@ -47,6 +48,16 @@ export default function Home() {
       <TopNav />
       <Hero />
       <Features />
+      <div className="relative h-40 overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-blue-100" />
+        {/* Breaks up 8-bit banding between two close, pale colors stretched
+            across a wide area - a plain two-stop gradient alone shows visible
+            stepping here even though the CSS itself is a smooth interpolation. */}
+        <div
+          className="absolute inset-0 opacity-[0.05] mix-blend-overlay"
+          style={{ backgroundImage: "url('/noise.svg')" }}
+        />
+      </div>
       <RoleHighlights />
       <Footer />
     </div>
@@ -55,24 +66,24 @@ export default function Home() {
 
 function TopNav() {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-navy-800 bg-navy-900">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <span className="flex items-center gap-2 text-lg font-bold text-navy-800">
+        <span className="flex items-center gap-2 text-lg font-bold text-white">
           <GraduationCap className="h-6 w-6 text-primary-500" />
           School Management System
         </span>
         <div className="flex items-center gap-2">
           <PageSearch />
-          <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1">
+          <div className="flex items-center gap-1 rounded-full border border-navy-700 bg-navy-800 p-1">
             <Link
               href="/login"
-              className="rounded-full px-4 py-1.5 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:text-primary-600"
+              className="rounded-full px-4 py-1.5 text-sm font-semibold text-white transition-colors duration-200 hover:text-primary-400"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="rounded-full bg-primary-500 px-4 py-1.5 text-sm font-semibold text-navy-900 transition-all duration-200 hover:bg-navy-800 hover:text-white hover:shadow-md"
+              className="rounded-full bg-primary-500 px-4 py-1.5 text-sm font-semibold text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-400 hover:shadow-md"
             >
               Register
             </Link>
@@ -150,7 +161,7 @@ function PageSearch() {
         type="button"
         onClick={handleToggle}
         aria-label="Search"
-        className="rounded-full p-2 text-slate-600 transition-colors duration-200 hover:bg-slate-100"
+        className="rounded-full p-2 text-slate-300 transition-colors duration-200 hover:bg-white/10 hover:text-white"
       >
         <Search className="h-5 w-5" />
       </button>
@@ -178,19 +189,20 @@ function PageSearch() {
 
 function Hero() {
   return (
-    <section className="bg-[#f5f5f5] px-4 py-16 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-3xl text-center">
-        <h1 className="fade-in text-3xl font-bold leading-tight text-navy-800 sm:text-5xl">
-          Assignments, submissions,
+    <section className="bg-gradient-to-b from-blue-100 from-55% to-slate-50 px-4 py-16 sm:px-6 sm:py-20">
+      <div className="mx-auto max-w-5xl text-center">
+        <h1 className="fade-in text-3xl font-bold leading-[1.15] tracking-tight text-navy-900 sm:text-6xl">
+          Assignments, submissions, and grading
           <br />
-          and grading — <span className="text-primary-500">all in one place</span>
+          <span className="text-primary-500">all in one place</span>
         </h1>
         <p
-          className="fade-in mx-auto mt-5 max-w-2xl text-base text-slate-500 sm:text-lg"
+          className="fade-in mx-auto mt-6 max-w-5xl text-base leading-relaxed text-slate-500 sm:text-lg"
           style={{ animationDelay: "80ms", animationFillMode: "backwards" }}
         >
-          A simple, role-based system for schools and colleges. Teachers create and grade
-          assignments, students submit before the deadline, and admins keep everything organized.
+          A complete role-based platform for schools and colleges. Teachers create, attach files
+          to, and grade assignments; students submit and track feedback; admins manage the whole
+          system with full visibility, live search, and instant notifications.
         </p>
         <div
           className="fade-in mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
@@ -220,7 +232,7 @@ const FEATURES = [
     icon: ClipboardList,
     title: "Assignment management",
     description:
-      "Teachers create assignments for a class and subject, set a deadline and max marks, and publish when ready.",
+      "Teachers create assignments for a class and subject, attach a reference file (PDF, Word, Excel, or image), set a deadline and max marks, and publish when ready.",
   },
   {
     id: "feature-deadline-aware-submissions",
@@ -237,25 +249,40 @@ const FEATURES = [
       "Teachers grade submissions with marks and written feedback, visible to the student immediately.",
   },
   {
+    id: "feature-notifications",
+    icon: Bell,
+    title: "In-app notifications",
+    description:
+      "Students and teachers are notified the moment an assignment is published or graded, with a live unread-count badge on every dashboard.",
+  },
+  {
+    id: "feature-global-search",
+    icon: Search,
+    title: "Role-aware global search",
+    description:
+      "Find any assignment, class, subject, user, or submission instantly from one search bar — results scoped to what each signed-in role is allowed to see.",
+  },
+  {
     id: "feature-secure-access",
     icon: ShieldCheck,
-    title: "Secure, role-based access",
+    title: "Secure, self-service accounts",
     description:
-      "JWT authentication with server-enforced roles — every user only ever sees what they're allowed to.",
+      "JWT authentication with server-enforced roles, plus one-time-code password recovery and self-service profile updates — no admin needed for a reset.",
   },
 ];
 
 function Features() {
   return (
-    <section className="px-4 py-16 sm:px-6 sm:py-24">
+    <section className="bg-slate-50 px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-navy-800 sm:text-3xl">Everything you need</h2>
           <p className="mt-3 text-sm text-slate-500 sm:text-base">
-            A focused feature set that covers the full assignment lifecycle, end to end.
+            A focused feature set that covers the full assignment lifecycle, end to end — plus
+            the tools that make a multi-role system easy to run day to day.
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
@@ -280,19 +307,22 @@ const ROLES = [
     id: "role-admin",
     icon: ShieldCheck,
     title: "Admin",
-    description: "Manage users, classes, subjects, and assign teachers to their subjects and classes.",
+    description:
+      "Manage users, classes, subjects, and teacher-subject-class assignments, with full read-only visibility into every assignment and submission — and a live search across the whole system.",
   },
   {
     id: "role-teacher",
     icon: BookOpen,
     title: "Teacher",
-    description: "Create and publish assignments, review submissions, and grade with feedback.",
+    description:
+      "Create and publish assignments with optional file attachments, review submissions, and grade with marks and feedback — with instant notifications when students submit.",
   },
   {
     id: "role-student",
     icon: Users,
     title: "Student",
-    description: "View assignments for your class, submit your work, and track your marks and feedback.",
+    description:
+      "View assignments for your class, submit your work, track your marks and feedback, and get notified the moment something is graded.",
   },
 ];
 
@@ -303,13 +333,19 @@ function searchPageSections(rawQuery: string) {
   const query = rawQuery.trim().toLowerCase();
   if (!query) return null;
 
-  // Check every section's title before falling back to descriptions. Without
-  // this split, searching "student" or "teacher" would match a feature card
-  // whose description happens to mention "Students"/"Teachers" in passing
-  // (e.g. "Students submit before the deadline...") before ever reaching the
-  // Student/Teacher role card the search term actually names.
+  // Check every section's title before falling back to descriptions. The
+  // title check is bidirectional (title-includes-query OR query-includes-title)
+  // so a plural query like "teachers" or "students" still matches the
+  // singular "Teacher"/"Student" role titles. Without either of these, a
+  // plural query would fall through to the description search and match a
+  // feature card whose description happens to mention "Students"/"Teachers"
+  // in passing (e.g. "Students submit before the deadline...") instead of
+  // the Student/Teacher role card the search term actually names.
   return (
-    SEARCHABLE_SECTIONS.find((section) => section.title.toLowerCase().includes(query)) ??
+    SEARCHABLE_SECTIONS.find((section) => {
+      const title = section.title.toLowerCase();
+      return title.includes(query) || query.includes(title);
+    }) ??
     SEARCHABLE_SECTIONS.find((section) => section.description.toLowerCase().includes(query)) ??
     undefined
   );
@@ -317,7 +353,7 @@ function searchPageSections(rawQuery: string) {
 
 function RoleHighlights() {
   return (
-    <section className="bg-[#f5f5f5] px-4 py-16 sm:px-6 sm:py-24">
+    <section className="bg-blue-100 px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-navy-800 sm:text-3xl">Built for every role</h2>

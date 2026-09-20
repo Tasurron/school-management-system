@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
 import { Spinner } from "@/components/ui/Spinner";
@@ -16,6 +16,14 @@ import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 
 export default function AdminOverviewPage() {
+  return (
+    <Suspense>
+      <AdminOverviewPageContent />
+    </Suspense>
+  );
+}
+
+function AdminOverviewPageContent() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);

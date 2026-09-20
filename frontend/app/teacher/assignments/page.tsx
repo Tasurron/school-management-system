@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Paperclip, ClipboardList, Pencil, Eye, EyeOff, Trash2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -19,6 +19,14 @@ import { rowId } from "@/lib/globalSearch";
 import { Assignment } from "@/types/assignment";
 
 export default function TeacherAssignmentsPage() {
+  return (
+    <Suspense>
+      <TeacherAssignmentsPageContent />
+    </Suspense>
+  );
+}
+
+function TeacherAssignmentsPageContent() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -172,15 +172,26 @@ const SOURCES: Record<Role, AnySource[]> = {
   Student: studentSources,
 };
 
+// Bidirectional so a plural query ("teachers") still matches a singular
+// field value ("Teacher", e.g. a user's role) and vice versa - a plain
+// field.includes(query) check only catches queries no longer than the field.
+// The query-includes-value direction is gated to values of at least 3
+// characters, otherwise a short field (e.g. a class section letter like "A")
+// would trivially match almost any unrelated query that happens to contain
+// that character.
+function textMatches(value: string, query: string): boolean {
+  return value.includes(query) || (value.length >= 3 && query.includes(value));
+}
+
 function matches(fields: Array<string | number | null | undefined>, query: string): boolean {
-  return fields.some((field) => field != null && String(field).toLowerCase().includes(query));
+  return fields.some((field) => field != null && textMatches(String(field).toLowerCase(), query));
 }
 
 // Sidebar pages are searchable too (typing "classes" should find the Classes
 // page), the same way the landing page search finds its sections.
 function searchPages(role: Role, query: string): SearchResult[] {
   return NAV_LINKS[role]
-    .filter((link) => link.label.toLowerCase().includes(query))
+    .filter((link) => textMatches(link.label.toLowerCase(), query))
     .map((link) => ({ group: "Pages", id: link.href, title: link.label, href: link.href }));
 }
 

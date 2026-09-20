@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { BackButton } from "@/components/ui/BackButton";
@@ -15,6 +15,14 @@ import { rowId } from "@/lib/globalSearch";
 import { Submission } from "@/types/submission";
 
 export default function StudentSubmissionsPage() {
+  return (
+    <Suspense>
+      <StudentSubmissionsPageContent />
+    </Suspense>
+  );
+}
+
+function StudentSubmissionsPageContent() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

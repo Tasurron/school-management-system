@@ -10,11 +10,10 @@ import { Role } from "@/types/user";
 
 // Icon-triggered search for the role dashboards, matching the notification
 // bell's interaction pattern: a plain icon button that opens a popover panel.
-// Inside the panel it still behaves like the landing page's "search this
-// page" box - nothing happens while typing, the search runs on submit (Enter
-// or the icon), and a miss shows a small red message. Because a dashboard can
-// have many hits across users/classes/assignments/etc, multiple matches are
-// listed grouped by type; a single match jumps straight to it.
+// Results update live as you type (debounced), grouped by type, and clicking
+// one navigates straight to it - there's no submit step and no auto-navigate
+// on a single match, since either would fight with typing (the query keeps
+// changing underneath you as you go).
 export function GlobalSearch({ role }: { role: Role }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +48,45 @@ export function GlobalSearch({ role }: { role: Role }) {
     if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
+  // Debounced live search - reruns a moment after typing settles. An empty
+  // query needs no state reset here: the render below only shows results/
+  // messages when there's a trimmed query, so stale state from a previous
+  // search simply never renders once the box is cleared.
+  //
+  // `cancelled` guards against a slower, now-outdated request's response
+  // landing after a newer one's - clearing the timeout alone only stops a
+  // request that hasn't fired yet, not one already in flight.
+  //
+  // setIsSearching(true) lives inside the timeout callback rather than the
+  // effect body itself so it's not a synchronous setState-in-effect call.
+  useEffect(() => {
+    if (!isOpen) return;
+    const trimmed = query.trim();
+    if (!trimmed) return;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const found = await searchAll(role, trimmed);
+        if (cancelled) return;
+        setResults(found);
+        setMessage(found.length === 0 ? "No matching results found." : null);
+      } catch (err) {
+        if (cancelled) return;
+        setResults([]);
+        setMessage(getErrorMessage(err));
+      } finally {
+        if (!cancelled) setIsSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, role, isOpen]);
+
   function handleToggle() {
     setIsOpen((open) => {
       const next = !open;
@@ -68,37 +106,18 @@ export function GlobalSearch({ role }: { role: Role }) {
     router.push(href);
   }
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!query.trim() || isSearching) return;
-
-    setIsSearching(true);
-    setMessage(null);
-    try {
-      const found = await searchAll(role, query);
-      if (found.length === 0) {
-        setResults([]);
-        setMessage("No matching results found.");
-      } else if (found.length === 1) {
-        goTo(found[0].href);
-      } else {
-        setResults(found);
-      }
-    } catch (err) {
-      setResults([]);
-      setMessage(getErrorMessage(err));
-    } finally {
-      setIsSearching(false);
-    }
-  }
-
-  // Preserve the declaration order of groups from globalSearch.ts.
-  const groups = results.reduce<Array<{ name: string; items: SearchResult[] }>>((acc, result) => {
-    const existing = acc.find((g) => g.name === result.group);
-    if (existing) existing.items.push(result);
-    else acc.push({ name: result.group, items: [result] });
-    return acc;
-  }, []);
+  // Preserve the declaration order of groups from globalSearch.ts. Gated on
+  // a trimmed query so results/messages left over from a previous search
+  // don't flash once the box is cleared back to empty.
+  const hasQuery = query.trim().length > 0;
+  const groups = hasQuery
+    ? results.reduce<Array<{ name: string; items: SearchResult[] }>>((acc, result) => {
+        const existing = acc.find((g) => g.name === result.group);
+        if (existing) existing.items.push(result);
+        else acc.push({ name: result.group, items: [result] });
+        return acc;
+      }, [])
+    : [];
 
   return (
     <div className="relative" ref={containerRef}>
@@ -113,22 +132,18 @@ export function GlobalSearch({ role }: { role: Role }) {
 
       {isOpen && (
         <div className="fade-in absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded border border-slate-100 bg-white shadow-lg">
-          <form onSubmit={handleSearch} className="border-b border-slate-100 p-3">
+          <div className="border-b border-slate-100 p-3">
             <SearchInput
               ref={inputRef}
-              submittable
               placeholder="Search..."
               value={query}
-              disabled={isSearching}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setMessage(null);
-                setResults([]);
-              }}
+              onChange={(e) => setQuery(e.target.value)}
             />
-          </form>
+          </div>
 
-          {message && <p className="px-4 py-6 text-center text-sm text-red-600">{message}</p>}
+          {hasQuery && !isSearching && message && (
+            <p className="px-4 py-6 text-center text-sm text-red-600">{message}</p>
+          )}
 
           {groups.length > 0 && (
             <div className="max-h-96 overflow-y-auto">
